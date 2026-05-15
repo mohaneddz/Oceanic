@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use tauri::image::Image;
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
@@ -13,6 +14,7 @@ const TRAY_SHOW_ID: &str = "tray_show";
 const TRAY_HIDE_ID: &str = "tray_hide";
 const TRAY_TOGGLE_PLAYBACK_ID: &str = "tray_toggle_playback";
 const TRAY_QUIT_ID: &str = "tray_quit";
+const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/32x32.png");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -118,7 +120,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let mut builder = TrayIconBuilder::with_id("oceanic-tray")
         .menu(&tray_menu)
         .tooltip("Oceanic")
-        .show_menu_on_left_click(true)
+        .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
             TRAY_SHOW_ID => show_main_window(app),
             TRAY_HIDE_ID => hide_main_window(app),
@@ -144,8 +146,12 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
             }
         });
 
-    if let Some(icon) = app.default_window_icon() {
-        builder = builder.icon(icon.clone());
+    let tray_icon = Image::from_bytes(TRAY_ICON_BYTES)
+        .ok()
+        .or_else(|| app.default_window_icon().cloned());
+
+    if let Some(icon) = tray_icon {
+        builder = builder.icon(icon);
     }
 
     let _ = builder.build(app)?;
