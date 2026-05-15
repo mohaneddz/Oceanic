@@ -1,12 +1,21 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { AudioLines } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 type TitlebarProps = {
   minimizeToTray: boolean;
+  playbackText: string;
 };
 
-export function Titlebar({ minimizeToTray }: TitlebarProps) {
+const NAV_ITEMS = [
+  { to: "/", label: "Mixer" },
+  { to: "/scenes", label: "Scenes" },
+  { to: "/timer", label: "Timer" },
+  { to: "/settings", label: "Settings" },
+];
+
+export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
   const appWindow = useMemo(() => getCurrentWindow(), []);
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -21,7 +30,7 @@ export function Titlebar({ minimizeToTray }: TitlebarProps) {
           setIsMaximized(maximized);
         }
       } catch {
-        // Non-tauri contexts can fail here.
+        // noop for web-only preview
       }
     };
 
@@ -30,11 +39,11 @@ export function Titlebar({ minimizeToTray }: TitlebarProps) {
       .onResized(() => {
         void sync();
       })
-      .then((fn) => {
-        unlisten = fn;
+      .then((off) => {
+        unlisten = off;
       })
       .catch(() => {
-        // Ignore listener failure outside Tauri.
+        // noop for web-only preview
       });
 
     return () => {
@@ -53,7 +62,7 @@ export function Titlebar({ minimizeToTray }: TitlebarProps) {
         await appWindow.minimize();
       }
     } catch {
-      // Ignore in browser mode.
+      // noop for web-only preview
     }
   };
 
@@ -63,7 +72,7 @@ export function Titlebar({ minimizeToTray }: TitlebarProps) {
       const maximized = await appWindow.isMaximized();
       setIsMaximized(maximized);
     } catch {
-      // Ignore in browser mode.
+      // noop for web-only preview
     }
   };
 
@@ -71,62 +80,84 @@ export function Titlebar({ minimizeToTray }: TitlebarProps) {
     try {
       await appWindow.close();
     } catch {
-      // Ignore in browser mode.
+      // noop for web-only preview
     }
   };
 
   return (
     <header
       data-tauri-drag-region
-      className="select-none border-b backdrop-blur themed-card"
+      className="h-[62px] border-b border-[#6c9dd633] bg-gradient-to-b from-[#08192cf5] to-[#051322f2]"
       onDoubleClick={toggleMaximize}
     >
-      <div data-tauri-drag-region className="flex h-11 w-full items-center justify-between px-3">
-        <div className="flex items-center gap-2">
-          <div className="h-2.5 w-2.5 rounded-full themed-btn-primary" />
-          <div className="h-2.5 w-2.5 rounded-full border themed-card" />
-          <p className="text-xs font-semibold uppercase tracking-[0.16em]">
-            Oceanic
-          </p>
-          <nav className="ml-4 flex items-center gap-2" data-tauri-drag-region="false">
-            <NavLink to="/" className={({ isActive }) => `rounded-md px-2 py-1 text-xs font-semibold ${isActive ? "themed-btn-primary" : "themed-btn-ghost border"}`}>Mixer</NavLink>
-            <NavLink to="/settings" className={({ isActive }) => `rounded-md px-2 py-1 text-xs font-semibold ${isActive ? "themed-btn-primary" : "themed-btn-ghost border"}`}>Settings</NavLink>
+      <div
+        data-tauri-drag-region
+        className="flex h-full items-center justify-between px-4"
+      >
+        <div className="flex items-center gap-4">
+          <img src="/images/brand/logo.png" alt="Oceanic" className="h-[22px] w-auto opacity-95" />
+          <nav className="flex items-center gap-1" data-tauri-drag-region="false">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `rounded-[10px] border px-4 py-3 text-[17px] font-semibold leading-none transition ${
+                    isActive
+                      ? "border-[#6091c766] bg-gradient-to-b from-[#1c4571db] to-[#133151e0] text-white"
+                      : "border-transparent text-[#e2ecf7d6] hover:border-[#7099ca57] hover:bg-[#122f508c] hover:text-white"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
           </nav>
         </div>
 
-        <div className="flex items-center" data-tauri-drag-region="false">
-          <button
-            type="button"
-            onClick={minimize}
-            className="h-8 w-10 rounded-md border themed-btn-ghost transition"
-            title={minimizeToTray ? "Hide to tray" : "Minimize"}
-            aria-label={minimizeToTray ? "Hide to tray" : "Minimize"}
-          >
-            <span className="mx-auto block h-[1.5px] w-4 bg-current" />
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleMaximize}
-            className="ml-1 h-8 w-10 rounded-md border themed-btn-ghost transition"
-            title={isMaximized ? "Restore" : "Maximize"}
-            aria-label={isMaximized ? "Restore" : "Maximize"}
-          >
-            <span className="mx-auto block h-3.5 w-3.5 border border-current" />
-          </button>
-
-          <button
-            type="button"
-            onClick={close}
-            className="ml-1 h-8 w-10 rounded-md border themed-btn-ghost transition hover:bg-red-500 hover:text-white"
-            title={minimizeToTray ? "Close to tray" : "Close"}
-            aria-label={minimizeToTray ? "Close to tray" : "Close"}
-          >
-            <span className="relative mx-auto block h-4 w-4">
-              <span className="absolute left-0 top-1/2 h-[1.5px] w-4 -translate-y-1/2 rotate-45 bg-current" />
-              <span className="absolute left-0 top-1/2 h-[1.5px] w-4 -translate-y-1/2 -rotate-45 bg-current" />
-            </span>
-          </button>
+        <div className="flex items-center gap-3" data-tauri-drag-region="false">
+          <div className="flex items-center gap-2 text-[16px] text-[#d6e1f0]">
+            <span className={`h-2 w-2 rounded-full shadow-[0_0_0_3px_rgba(45,132,255,0.2)] ${playbackText === "Paused" ? "bg-[#8aa2bc]" : "bg-[#2d84ff]"}`} />
+            <span>{playbackText === "Paused" ? "Paused" : "Currently Playing"}</span>
+            <AudioLines size={16} />
+          </div>
+          <span className="h-5 w-px bg-[#7099ca40]" />
+          <div className="flex items-center gap-[2px]">
+            <button
+              type="button"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              aria-label="Minimize"
+              onClick={minimize}
+            >
+              <span className="block h-[1px] w-4 bg-current" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              aria-label={isMaximized ? "Restore" : "Maximize"}
+              onClick={toggleMaximize}
+            >
+              {isMaximized ? (
+                <span className="relative block h-[10px] w-[10px]">
+                  <span className="absolute right-0 top-0 h-[8px] w-[8px] border border-current bg-transparent" />
+                  <span className="absolute bottom-0 left-0 h-[8px] w-[8px] border border-current bg-transparent" />
+                </span>
+              ) : (
+                <span className="block h-[10px] w-[10px] border border-current" />
+              )}
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              aria-label="Close"
+              onClick={close}
+            >
+              <span className="relative block h-[10px] w-[10px]">
+                <span className="absolute left-0 top-1/2 h-[1px] w-[10px] -translate-y-1/2 rotate-45 bg-current" />
+                <span className="absolute left-0 top-1/2 h-[1px] w-[10px] -translate-y-1/2 -rotate-45 bg-current" />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
