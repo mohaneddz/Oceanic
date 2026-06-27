@@ -1,5 +1,5 @@
 <h1 style="font-family: Arial, sans-serif; font-size: 36px; color: #5FA8F5; display: flex; align-items: center; gap: 12px; border-bottom: 3px solid #5FA8F5; padding-bottom: 8px;">
-  <img src=".idea/brand.png" alt="Oceanic Logo" style="height: 55px; width: 55px; object-fit: contain; border-radius: 8px;">
+  <img src="public/images/brand/icon.png" alt="Oceanic Logo" style="height: 55px; width: 55px; object-fit: contain; border-radius: 8px;">
   Oceanic - Ambient Focus Desktop App
 </h1>
 
@@ -178,3 +178,4 @@ pnpm tauri build # Build desktop installers/bundles
 ## Credits
 
 Built by the Oceanic project team.
+
