@@ -1,10 +1,10 @@
 import { Pause, Play, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { SceneItem } from "../lib/scenes";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import type { SavedScene } from "../lib/types";
 
 interface ScenePlayerProps {
-  scene: SceneItem;
+  scene: Pick<SavedScene, "title" | "description" | "video">;
   onClose: () => void;
 }
 
@@ -12,45 +12,37 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
-  const [activeSrc, setActiveSrc] = useState(scene.video);
 
+  // Play/pause and source sync effect
   useEffect(() => {
-    if (!videoRef.current) return;
+    const video = videoRef.current;
+    if (!video) return;
+
     if (isPlaying) {
-      setActiveSrc(scene.video);
-      videoRef.current.play().catch(() => {});
-      return;
+      video.play().catch((err) => {
+        console.warn("Video playback start failed:", err);
+      });
+    } else {
+      video.pause();
     }
-    videoRef.current.pause();
-    videoRef.current.removeAttribute("src");
-    videoRef.current.load();
   }, [isPlaying, scene.video]);
 
+  // Auto-play when changing scenes
   useEffect(() => {
     setIsPlaying(true);
-    setActiveSrc(scene.video);
   }, [scene.video]);
-
-  useEffect(() => {
-    return () => {
-      if (!videoRef.current) return;
-      videoRef.current.pause();
-      videoRef.current.removeAttribute("src");
-      videoRef.current.load();
-    };
-  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
       <video
         ref={videoRef}
-        src={activeSrc}
+        src={scene.video}
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay={isPlaying}
         loop
         muted={isMuted}
         playsInline
-        preload="none"
+        preload="auto"
       />
       
       <div className="absolute inset-x-0 bottom-0 flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-t from-black/80 to-transparent p-6 sm:p-8">
