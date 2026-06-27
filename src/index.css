@@ -22,3 +22,43 @@ body {
     radial-gradient(900px 500px at 92% 120%, rgba(24, 94, 178, 0.24), transparent 62%),
     linear-gradient(140deg, #071425 0%, #051226 48%, #06162d 100%);
 }
+
+html[data-larger-ui="true"] {
+  font-size: 17px;
+}
+
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Custom premium scrollbar styling matching glassmorphism aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(106, 148, 197, 0.15);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(106, 148, 197, 0.35);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(106, 148, 197, 0.15) transparent;
+}

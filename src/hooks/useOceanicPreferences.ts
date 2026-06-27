@@ -1,119 +1,40 @@
 import { invoke } from "@tauri-apps/api/core";
 import { load, type Store } from "@tauri-apps/plugin-store";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { OceanicSettings, RustSettings } from "../lib/types";
+import type {
+  OceanicSettings,
+  RustSettings,
+  SavedScene,
+  TimerPreset,
+  TimerSessionState,
+} from "../lib/types";
 import { ALL_SOUNDS } from "../lib/sounds";
+import {
+  createDefaultScenes,
+  createDefaultSettings,
+  createDefaultTimerPresets,
+  createDefaultTimerSession,
+  sanitizeScenes,
+  sanitizeSettings,
+  sanitizeTimerPresets,
+  sanitizeTimerSession,
+} from "../lib/oceanicState";
 
 const STORE_FILE = "oceanic-data.json";
 const SETTINGS_KEY = "ui.settings";
-
-function defaults(): OceanicSettings {
-  const perSoundVolume: Record<string, number> = {};
-  const enabled: Record<string, boolean> = {};
-  const favorite: Record<string, boolean> = {};
-  for (const sound of ALL_SOUNDS) {
-    perSoundVolume[sound.id] = 0.6;
-    enabled[sound.id] = false;
-    favorite[sound.id] = false;
-  }
-  favorite.rain = true;
-  favorite.waves = true;
-  favorite.stream = true;
-  favorite["white-noise"] = true;
-  enabled.rain = true;
-  enabled.waves = true;
-
-  return {
-    minimizeToTray: true,
-    startMinimized: false,
-    masterVolume: 0.7,
-    perSoundVolume,
-    enabled,
-    favorite,
-    sleepTimerMinutes: null,
-    fadeOutMinutes: 30,
-    theme: "oceanic",
-    hideInactiveSounds: false,
-    autoPlayOnLaunch: true,
-    audioDucking: true,
-    fadeOutOnClose: true,
-    fadeOutDuration: 3,
-    globalMediaHotkeys: false,
-    reduceMotion: false,
-    largerUI: false,
-  };
-}
-
-function sanitize(input: unknown): OceanicSettings {
-  const fallback = defaults();
-  if (!input || typeof input !== "object") {
-    return fallback;
-  }
-  const parsed = input as Partial<OceanicSettings>;
-
-  return {
-    minimizeToTray:
-      typeof parsed.minimizeToTray === "boolean" ? parsed.minimizeToTray : fallback.minimizeToTray,
-    startMinimized:
-      typeof parsed.startMinimized === "boolean" ? parsed.startMinimized : fallback.startMinimized,
-    masterVolume:
-      typeof parsed.masterVolume === "number" ? parsed.masterVolume : fallback.masterVolume,
-    perSoundVolume: { ...fallback.perSoundVolume, ...(parsed.perSoundVolume ?? {}) },
-    enabled: { ...fallback.enabled, ...(parsed.enabled ?? {}) },
-    favorite: { ...fallback.favorite, ...(parsed.favorite ?? {}) },
-    sleepTimerMinutes:
-      typeof parsed.sleepTimerMinutes === "number" || parsed.sleepTimerMinutes === null
-        ? parsed.sleepTimerMinutes
-        : fallback.sleepTimerMinutes,
-    fadeOutMinutes:
-      typeof parsed.fadeOutMinutes === "number" || parsed.fadeOutMinutes === null
-        ? parsed.fadeOutMinutes
-        : fallback.fadeOutMinutes,
-    theme:
-      parsed.theme === "light" ||
-      parsed.theme === "dark" ||
-      parsed.theme === "cherry" ||
-      parsed.theme === "acacia" ||
-      parsed.theme === "oceanic"
-        ? parsed.theme
-        : fallback.theme,
-    hideInactiveSounds:
-      typeof parsed.hideInactiveSounds === "boolean"
-        ? parsed.hideInactiveSounds
-        : fallback.hideInactiveSounds,
-    autoPlayOnLaunch:
-      typeof parsed.autoPlayOnLaunch === "boolean"
-        ? parsed.autoPlayOnLaunch
-        : fallback.autoPlayOnLaunch,
-    audioDucking:
-      typeof parsed.audioDucking === "boolean"
-        ? parsed.audioDucking
-        : fallback.audioDucking,
-    fadeOutOnClose:
-      typeof parsed.fadeOutOnClose === "boolean"
-        ? parsed.fadeOutOnClose
-        : fallback.fadeOutOnClose,
-    fadeOutDuration:
-      typeof parsed.fadeOutDuration === "number"
-        ? parsed.fadeOutDuration
-        : fallback.fadeOutDuration,
-    globalMediaHotkeys:
-      typeof parsed.globalMediaHotkeys === "boolean"
-        ? parsed.globalMediaHotkeys
-        : fallback.globalMediaHotkeys,
-    reduceMotion:
-      typeof parsed.reduceMotion === "boolean"
-        ? parsed.reduceMotion
-        : fallback.reduceMotion,
-    largerUI:
-      typeof parsed.largerUI === "boolean"
-        ? parsed.largerUI
-        : fallback.largerUI,
-  };
-}
+const SCENES_KEY = "ui.scenes";
+const TIMER_PRESETS_KEY = "ui.timer.presets";
+const TIMER_SESSION_KEY = "ui.timer.session";
 
 export function useOceanicPreferences() {
-  const [settings, setSettings] = useState<OceanicSettings>(() => defaults());
+  const [settings, setSettings] = useState<OceanicSettings>(() => createDefaultSettings());
+  const [savedScenes, setSavedScenes] = useState<SavedScene[]>(() => createDefaultScenes());
+  const [timerPresets, setTimerPresets] = useState<TimerPreset[]>(() =>
+    createDefaultTimerPresets(createDefaultScenes()),
+  );
+  const [timerSession, setTimerSession] = useState<TimerSessionState>(() =>
+    createDefaultTimerSession(createDefaultTimerPresets(createDefaultScenes())),
+  );
   const [ready, setReady] = useState(false);
   const [store, setStore] = useState<Store | null>(null);
   const storeRef = useRef<Store | null>(null);
@@ -124,25 +45,39 @@ export function useOceanicPreferences() {
     const hydrate = async () => {
       try {
         const storeInstance = await load(STORE_FILE, { defaults: {}, autoSave: 200 });
-        const saved = await storeInstance.get<unknown>(SETTINGS_KEY);
-        const rustSettings = await invoke<RustSettings>("get_settings").catch(() => null);
+        const [savedSettings, savedScenesValue, savedTimerPresets, savedTimerSession, rustSettings] =
+          await Promise.all([
+            storeInstance.get<unknown>(SETTINGS_KEY),
+            storeInstance.get<unknown>(SCENES_KEY),
+            storeInstance.get<unknown>(TIMER_PRESETS_KEY),
+            storeInstance.get<unknown>(TIMER_SESSION_KEY),
+            invoke<RustSettings>("get_settings").catch(() => null),
+          ]);
+
         if (cancelled) {
           void storeInstance.close();
           return;
         }
 
-        const sanitized = sanitize(saved);
-        const merged: OceanicSettings = rustSettings
+        const sanitizedSettings = sanitizeSettings(savedSettings);
+        const hydratedScenes = sanitizeScenes(savedScenesValue);
+        const hydratedTimerPresets = sanitizeTimerPresets(savedTimerPresets, hydratedScenes);
+        const hydratedTimerSession = sanitizeTimerSession(savedTimerSession, hydratedTimerPresets);
+
+        const mergedSettings: OceanicSettings = rustSettings
           ? {
-              ...sanitized,
+              ...sanitizedSettings,
               minimizeToTray: rustSettings.minimizeToTray,
               startMinimized: rustSettings.startMinimized,
             }
-          : sanitized;
+          : sanitizedSettings;
 
         storeRef.current = storeInstance;
         setStore(storeInstance);
-        setSettings(merged);
+        setSettings(mergedSettings);
+        setSavedScenes(hydratedScenes);
+        setTimerPresets(hydratedTimerPresets);
+        setTimerSession(hydratedTimerSession);
       } finally {
         if (!cancelled) {
           setReady(true);
@@ -167,23 +102,38 @@ export function useOceanicPreferences() {
       return;
     }
 
-    void store.set(SETTINGS_KEY, settings)
+    void Promise.all([
+      store.set(SETTINGS_KEY, settings),
+      store.set(SCENES_KEY, savedScenes),
+      store.set(TIMER_PRESETS_KEY, timerPresets),
+      store.set(TIMER_SESSION_KEY, timerSession),
+    ])
       .then(() => store.save())
       .catch(() => {});
+
     void invoke("save_settings", {
       settings: {
         minimizeToTray: settings.minimizeToTray,
         startMinimized: settings.startMinimized,
       },
-    }).catch(() => {
-      // Ignore outside tauri.
-    });
-  }, [ready, settings, store]);
+    }).catch(() => {});
+  }, [ready, savedScenes, settings, store, timerPresets, timerSession]);
 
   const activeCount = useMemo(
     () => ALL_SOUNDS.filter((sound) => settings.enabled[sound.id]).length,
-    [settings.enabled]
+    [settings.enabled],
   );
 
-  return { settings, setSettings, activeCount, ready };
+  return {
+    settings,
+    setSettings,
+    savedScenes,
+    setSavedScenes,
+    timerPresets,
+    setTimerPresets,
+    timerSession,
+    setTimerSession,
+    activeCount,
+    ready,
+  };
 }
