@@ -18,7 +18,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Ocean","Rain"],
     video: "/videos/1-bless-lord.mp4",
-    thumbnail: "/cache/video-thumbs/1-bless-lord.avif",
+    thumbnail: "/cache/video-thumbs/1-bless-lord.jpg",
     favorited: true,
   },
   {
@@ -28,7 +28,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Focus","Deep"],
     video: "/videos/2-motion-background.mp4",
-    thumbnail: "/cache/video-thumbs/2-motion-background.avif",
+    thumbnail: "/cache/video-thumbs/2-motion-background.jpg",
     favorited: true,
   },
   {
@@ -38,7 +38,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Nature","Morning"],
     video: "/videos/3-bright-colored.mp4",
-    thumbnail: "/cache/video-thumbs/3-bright-colored.avif",
+    thumbnail: "/cache/video-thumbs/3-bright-colored.jpg",
     favorited: true,
   },
   {
@@ -48,7 +48,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Rain","Calm"],
     video: "/videos/4-trees-fog.mp4",
-    thumbnail: "/cache/video-thumbs/4-trees-fog.avif",
+    thumbnail: "/cache/video-thumbs/4-trees-fog.jpg",
   },
   {
     id: "scene-4",
@@ -57,7 +57,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Night","Ambient"],
     video: "/videos/5-triangle-clouds.mp4",
-    thumbnail: "/cache/video-thumbs/5-triangle-clouds.avif",
+    thumbnail: "/cache/video-thumbs/5-triangle-clouds.jpg",
   },
   {
     id: "scene-5",
@@ -66,7 +66,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Fire","Focus"],
     video: "/videos/6-4k-blue.mp4",
-    thumbnail: "/cache/video-thumbs/6-4k-blue.avif",
+    thumbnail: "/cache/video-thumbs/6-4k-blue.jpg",
   },
   {
     id: "scene-6",
@@ -75,7 +75,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Train","Flow"],
     video: "/videos/7-flowing-water.mp4",
-    thumbnail: "/cache/video-thumbs/7-flowing-water.avif",
+    thumbnail: "/cache/video-thumbs/7-flowing-water.jpg",
   },
   {
     id: "scene-7",
@@ -84,7 +84,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Autumn","Woods"],
     video: "/videos/8-glimmering.mp4",
-    thumbnail: "/cache/video-thumbs/8-glimmering.avif",
+    thumbnail: "/cache/video-thumbs/8-glimmering.jpg",
   },
   {
     id: "scene-8",
@@ -93,7 +93,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Valley","Serene"],
     video: "/videos/9-60fps-colorful.mp4",
-    thumbnail: "/cache/video-thumbs/9-60fps-colorful.avif",
+    thumbnail: "/cache/video-thumbs/9-60fps-colorful.jpg",
   },
   {
     id: "scene-9",
@@ -102,7 +102,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Ocean","Rain"],
     video: "/videos/10-2015-effects.mp4",
-    thumbnail: "/cache/video-thumbs/10-2015-effects.avif",
+    thumbnail: "/cache/video-thumbs/10-2015-effects.jpg",
   },
   {
     id: "scene-10",
@@ -111,7 +111,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Focus","Deep"],
     video: "/videos/11-2015-effects.mp4",
-    thumbnail: "/cache/video-thumbs/11-2015-effects.avif",
+    thumbnail: "/cache/video-thumbs/11-2015-effects.jpg",
   },
   {
     id: "scene-11",
@@ -120,7 +120,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Nature","Morning"],
     video: "/videos/12-60fps-light.mp4",
-    thumbnail: "/cache/video-thumbs/12-60fps-light.avif",
+    thumbnail: "/cache/video-thumbs/12-60fps-light.jpg",
   },
   {
     id: "scene-12",
@@ -129,7 +129,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Rain","Calm"],
     video: "/videos/13-60fps-welcome.mp4",
-    thumbnail: "/cache/video-thumbs/13-60fps-welcome.avif",
+    thumbnail: "/cache/video-thumbs/13-60fps-welcome.jpg",
   },
   {
     id: "scene-13",
@@ -138,7 +138,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Night","Ambient"],
     video: "/videos/14-rainbow-animated.mp4",
-    thumbnail: "/cache/video-thumbs/14-rainbow-animated.avif",
+    thumbnail: "/cache/video-thumbs/14-rainbow-animated.jpg",
   },
   {
     id: "scene-14",
@@ -147,7 +147,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Fire","Focus"],
     video: "/videos/15-mountains.mp4",
-    thumbnail: "/cache/video-thumbs/15-mountains.avif",
+    thumbnail: "/cache/video-thumbs/15-mountains.jpg",
   },
   {
     id: "scene-15",
@@ -156,7 +156,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Train","Flow"],
     video: "/videos/16-summer-leaves.mp4",
-    thumbnail: "/cache/video-thumbs/16-summer-leaves.avif",
+    thumbnail: "/cache/video-thumbs/16-summer-leaves.jpg",
   },
   {
     id: "scene-16",
@@ -165,7 +165,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Autumn","Woods"],
     video: "/videos/17-night-sky.mp4",
-    thumbnail: "/cache/video-thumbs/17-night-sky.avif",
+    thumbnail: "/cache/video-thumbs/17-night-sky.jpg",
   },
   {
     id: "scene-17",
@@ -174,7 +174,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Valley","Serene"],
     video: "/videos/18-iceland-aurora.mp4",
-    thumbnail: "/cache/video-thumbs/18-iceland-aurora.avif",
+    thumbnail: "/cache/video-thumbs/18-iceland-aurora.jpg",
   },
   {
     id: "scene-18",
@@ -183,7 +183,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Ocean","Rain"],
     video: "/videos/19-light-column.mp4",
-    thumbnail: "/cache/video-thumbs/19-light-column.avif",
+    thumbnail: "/cache/video-thumbs/19-light-column.jpg",
   },
   {
     id: "scene-19",
@@ -192,7 +192,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Focus","Deep"],
     video: "/videos/20-looping-cloud.mp4",
-    thumbnail: "/cache/video-thumbs/20-looping-cloud.avif",
+    thumbnail: "/cache/video-thumbs/20-looping-cloud.jpg",
   },
   {
     id: "scene-20",
@@ -201,7 +201,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Nature","Morning"],
     video: "/videos/21-spring-clouds.mp4",
-    thumbnail: "/cache/video-thumbs/21-spring-clouds.avif",
+    thumbnail: "/cache/video-thumbs/21-spring-clouds.jpg",
   },
   {
     id: "scene-21",
@@ -210,7 +210,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Rain","Calm"],
     video: "/videos/22-autumn-dream.mp4",
-    thumbnail: "/cache/video-thumbs/22-autumn-dream.avif",
+    thumbnail: "/cache/video-thumbs/22-autumn-dream.jpg",
   },
   {
     id: "scene-22",
@@ -219,7 +219,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Night","Ambient"],
     video: "/videos/23-fall.mp4",
-    thumbnail: "/cache/video-thumbs/23-fall.avif",
+    thumbnail: "/cache/video-thumbs/23-fall.jpg",
   },
   {
     id: "scene-23",
@@ -228,7 +228,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Fire","Focus"],
     video: "/videos/24-fresh-water.mp4",
-    thumbnail: "/cache/video-thumbs/24-fresh-water.avif",
+    thumbnail: "/cache/video-thumbs/24-fresh-water.jpg",
   },
   {
     id: "scene-24",
@@ -237,7 +237,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Train","Flow"],
     video: "/videos/25-slow-splashing.mp4",
-    thumbnail: "/cache/video-thumbs/25-slow-splashing.avif",
+    thumbnail: "/cache/video-thumbs/25-slow-splashing.jpg",
   },
   {
     id: "scene-25",
@@ -246,7 +246,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Autumn","Woods"],
     video: "/videos/26-strange-night.mp4",
-    thumbnail: "/cache/video-thumbs/26-strange-night.avif",
+    thumbnail: "/cache/video-thumbs/26-strange-night.jpg",
   },
   {
     id: "scene-26",
@@ -255,7 +255,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Valley","Serene"],
     video: "/videos/27-sunset-mountains.mp4",
-    thumbnail: "/cache/video-thumbs/27-sunset-mountains.avif",
+    thumbnail: "/cache/video-thumbs/27-sunset-mountains.jpg",
   },
   {
     id: "scene-27",
@@ -264,7 +264,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Ocean","Rain"],
     video: "/videos/28-wedding-download.mp4",
-    thumbnail: "/cache/video-thumbs/28-wedding-download.avif",
+    thumbnail: "/cache/video-thumbs/28-wedding-download.jpg",
   },
   {
     id: "scene-28",
@@ -273,7 +273,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Focus","Deep"],
     video: "/videos/29-wedding-download.mp4",
-    thumbnail: "/cache/video-thumbs/29-wedding-download.avif",
+    thumbnail: "/cache/video-thumbs/29-wedding-download.jpg",
   },
   {
     id: "scene-29",
@@ -282,7 +282,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Nature","Morning"],
     video: "/videos/30-wedding-download.mp4",
-    thumbnail: "/cache/video-thumbs/30-wedding-download.avif",
+    thumbnail: "/cache/video-thumbs/30-wedding-download.jpg",
   },
   {
     id: "scene-30",
@@ -291,7 +291,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Rain","Calm"],
     video: "/videos/31-cold-night.mp4",
-    thumbnail: "/cache/video-thumbs/31-cold-night.avif",
+    thumbnail: "/cache/video-thumbs/31-cold-night.jpg",
   },
   {
     id: "scene-31",
@@ -300,7 +300,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Night","Ambient"],
     video: "/videos/32-water-caustics.mp4",
-    thumbnail: "/cache/video-thumbs/32-water-caustics.avif",
+    thumbnail: "/cache/video-thumbs/32-water-caustics.jpg",
   },
   {
     id: "scene-32",
@@ -309,7 +309,7 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Fire","Focus"],
     video: "/videos/33-golden-rain.mp4",
-    thumbnail: "/cache/video-thumbs/33-golden-rain.avif",
+    thumbnail: "/cache/video-thumbs/33-golden-rain.jpg",
   },
   {
     id: "scene-33",
@@ -318,7 +318,7 @@ export const SCENES: SceneItem[] = [
     duration: 30,
     tags: ["Train","Flow"],
     video: "/videos/34-explosive.mp4",
-    thumbnail: "/cache/video-thumbs/34-explosive.avif",
+    thumbnail: "/cache/video-thumbs/34-explosive.jpg",
   },
   {
     id: "scene-34",
@@ -327,7 +327,7 @@ export const SCENES: SceneItem[] = [
     duration: 45,
     tags: ["Autumn","Woods"],
     video: "/videos/35-galaxy.mp4",
-    thumbnail: "/cache/video-thumbs/35-galaxy.avif",
+    thumbnail: "/cache/video-thumbs/35-galaxy.jpg",
   },
   {
     id: "scene-35",
@@ -336,8 +336,6 @@ export const SCENES: SceneItem[] = [
     duration: 60,
     tags: ["Valley","Serene"],
     video: "/videos/36-deep-blue.mp4",
-    thumbnail: "/cache/video-thumbs/36-deep-blue.avif",
+    thumbnail: "/cache/video-thumbs/36-deep-blue.jpg",
   },
 ];
-
-
