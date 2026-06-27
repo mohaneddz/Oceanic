@@ -192,6 +192,32 @@ fn set_hide_to_tray(app: AppHandle, state: State<'_, AppState>, enabled: bool) -
     persist_settings(&app, &updated)
 }
 
+#[tauri::command]
+fn put_pc_to_sleep() -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("rundll32.exe")
+            .args(&["powrprof.dll,SetSuspendState", "0,1,0"])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("pmset")
+            .args(&["sleepnow"])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("systemctl")
+            .args(&["suspend"])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -246,7 +272,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_settings,
             save_settings,
-            set_hide_to_tray
+            set_hide_to_tray,
+            put_pc_to_sleep
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

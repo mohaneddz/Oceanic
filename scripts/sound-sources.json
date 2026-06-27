@@ -1,0 +1,34 @@
+{
+  "baseSources": [
+    {
+      "id": "rain-ocean",
+      "url": "https://www.youtube.com/watch?v=v4C4keiF0tQ",
+      "downloadedClip": "tmp/sound-src/rain-ocean.mp3",
+      "derivedOutputs": ["tent-rain", "harbor-water"]
+    },
+    {
+      "id": "thunderstorm",
+      "url": "https://www.youtube.com/watch?v=D8rFVRDks6Q",
+      "downloadedClip": "tmp/sound-src/thunderstorm.mp3",
+      "derivedOutputs": ["distant-thunder"]
+    },
+    {
+      "id": "forest-stream",
+      "url": "https://www.youtube.com/watch?v=UZ9uyQI3pF0",
+      "downloadedClip": "tmp/sound-src/forest-stream.mp3",
+      "derivedOutputs": ["forest-dawn"]
+    },
+    {
+      "id": "coffee-shop",
+      "url": "https://www.youtube.com/watch?v=qU8o3_T5y5M",
+      "downloadedClip": "tmp/sound-src/coffee-shop.mp3",
+      "derivedOutputs": ["library", "keyboard-room"]
+    },
+    {
+      "id": "summer-night",
+      "url": "https://www.youtube.com/watch?v=7GoXVDH656g",
+      "downloadedClip": "tmp/sound-src/summer-night.webm",
+      "derivedOutputs": ["crickets", "frogs", "owl-night"]
+    }
+  ]
+}
