@@ -67,7 +67,7 @@ export function SettingsPage({
 
   return (
     <main className="h-full w-full overflow-hidden p-5 text-[#f0f5fc]">
-      <div className="grid h-full grid-cols-[270px_minmax(0,1fr)] gap-3 max-[1400px]:grid-cols-1">
+      <div className="grid h-full grid-cols-[270px_minmax(0,1fr)] gap-3 max-[1400px]:grid-cols-1 max-[1400px]:h-auto max-[1400px]:overflow-y-auto pr-1">
         <aside className={`${panelClass} flex flex-col gap-2 p-3`}>
           <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">SETTINGS</p>
           {sidebarItems.map(({ label, id, Icon }) => (
@@ -136,10 +136,6 @@ export function SettingsPage({
                   <Toggle checked={settings.hideInactiveSounds} onToggle={() => updateSettings({ hideInactiveSounds: !settings.hideInactiveSounds })} />
                 </div>
                 <div className={rowClass}>
-                  <div><p className="text-base">Audio ducking while other apps speak</p><p className="text-sm text-[#91a7bf]">Lower Oceanic volume when other apps are using your microphone.</p></div>
-                  <Toggle checked={settings.audioDucking} onToggle={() => updateSettings({ audioDucking: !settings.audioDucking })} />
-                </div>
-                <div className={rowClass}>
                   <div><p className="text-base">Fade out when closing</p><p className="text-sm text-[#91a7bf]">Gradually fade out all audio when the app closes or is quit.</p></div>
                   <div className="flex items-center gap-2">
                     <Toggle checked={settings.fadeOutOnClose} onToggle={() => updateSettings({ fadeOutOnClose: !settings.fadeOutOnClose })} />
@@ -185,7 +181,7 @@ export function SettingsPage({
                   </div>
                 </div>
                 <div className={rowClass}>
-                  <div><p className="text-base">Global media hotkeys</p><p className="text-sm text-[#91a7bf]">Use media keys to control playback when Oceanic is in the background.</p></div>
+                  <div><p className="text-base">Media key integration</p><p className="text-sm text-[#91a7bf]">Expose play and pause controls through the system media session when supported.</p></div>
                   <Toggle checked={settings.globalMediaHotkeys} onToggle={() => updateSettings({ globalMediaHotkeys: !settings.globalMediaHotkeys })} />
                 </div>
               </div>
