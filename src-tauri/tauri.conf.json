@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "oceanic",
+  "productName": "Oceanic",
   "version": "0.1.0",
   "identifier": "com.oceanic.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:10000",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Oceanic",
-        "width": 1180,
-        "height": 780,
+        "width": 1920,
+        "height": 1080,
         "minWidth": 900,
         "minHeight": 620,
         "center": true,
