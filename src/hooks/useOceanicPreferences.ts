@@ -43,6 +43,17 @@ export function useOceanicPreferences() {
     let cancelled = false;
 
     const hydrate = async () => {
+      const hasTauriRuntime =
+        typeof window !== "undefined" &&
+        Boolean((window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__);
+
+      if (!hasTauriRuntime) {
+        if (!cancelled) {
+          setReady(true);
+        }
+        return;
+      }
+
       try {
         const storeInstance = await load(STORE_FILE, { defaults: {}, autoSave: 200 });
         const [savedSettings, savedScenesValue, savedTimerPresets, savedTimerSession, rustSettings] =
