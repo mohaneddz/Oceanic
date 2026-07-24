@@ -38,6 +38,8 @@ export type ThemeName = "light" | "dark" | "cherry" | "acacia" | "oceanic";
 export type RustSettings = {
   minimizeToTray: boolean;
   startMinimized: boolean;
+  fadeOutOnClose: boolean;
+  fadeOutDuration: number;
 };
 
 export type OceanicSettings = RustSettings & {
@@ -51,8 +53,6 @@ export type OceanicSettings = RustSettings & {
   hideInactiveSounds: boolean;
   autoPlayOnLaunch: boolean;
   audioDucking: boolean;
-  fadeOutOnClose: boolean;
-  fadeOutDuration: number;
   globalMediaHotkeys: boolean;
   reduceMotion: boolean;
   largerUI: boolean;
