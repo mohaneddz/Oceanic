@@ -16,12 +16,24 @@ const NAV_ITEMS = [
 ];
 
 export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
-  const appWindow = useMemo(() => getCurrentWindow(), []);
+  const appWindow = useMemo(() => {
+    try {
+      return getCurrentWindow();
+    } catch {
+      return null;
+    }
+  }, []);
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
     let disposed = false;
     let unlisten: (() => void) | null = null;
+
+    if (!appWindow) {
+      return () => {
+        disposed = true;
+      };
+    }
 
     const sync = async () => {
       try {
@@ -55,6 +67,9 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
   }, [appWindow]);
 
   const minimize = async () => {
+    if (!appWindow) {
+      return;
+    }
     try {
       if (minimizeToTray) {
         await appWindow.hide();
@@ -67,6 +82,9 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
   };
 
   const toggleMaximize = async () => {
+    if (!appWindow) {
+      return;
+    }
     try {
       await appWindow.toggleMaximize();
       const maximized = await appWindow.isMaximized();
@@ -77,6 +95,9 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
   };
 
   const close = async () => {
+    if (!appWindow) {
+      return;
+    }
     try {
       await appWindow.close();
     } catch {

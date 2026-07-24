@@ -13,6 +13,37 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
 
+  useEffect(() => {
+    let disposed = false;
+
+    const enterFullscreen = async () => {
+      try {
+        const win = getCurrentWindow();
+        if (!disposed && !(await win.isFullscreen())) {
+          await win.setFullscreen(true);
+        }
+      } catch (err) {
+        console.warn("Fullscreen entry failed:", err);
+      }
+    };
+
+    void enterFullscreen();
+
+    return () => {
+      disposed = true;
+      void (async () => {
+        try {
+          const win = getCurrentWindow();
+          if (await win.isFullscreen()) {
+            await win.setFullscreen(false);
+          }
+        } catch (err) {
+          console.warn("Fullscreen exit failed:", err);
+        }
+      })();
+    };
+  }, []);
+
   // Play/pause and source sync effect
   useEffect(() => {
     const video = videoRef.current;
