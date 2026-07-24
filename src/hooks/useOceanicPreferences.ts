@@ -80,6 +80,8 @@ export function useOceanicPreferences() {
               ...sanitizedSettings,
               minimizeToTray: rustSettings.minimizeToTray,
               startMinimized: rustSettings.startMinimized,
+              fadeOutOnClose: rustSettings.fadeOutOnClose,
+              fadeOutDuration: rustSettings.fadeOutDuration,
             }
           : sanitizedSettings;
 
@@ -113,21 +115,29 @@ export function useOceanicPreferences() {
       return;
     }
 
-    void Promise.all([
-      store.set(SETTINGS_KEY, settings),
-      store.set(SCENES_KEY, savedScenes),
-      store.set(TIMER_PRESETS_KEY, timerPresets),
-      store.set(TIMER_SESSION_KEY, timerSession),
-    ])
-      .then(() => store.save())
-      .catch(() => {});
+    // Debounced: without this, every slider drag tick or keystroke would trigger
+    // 4 store writes + a Rust IPC round-trip immediately, causing jank while
+    // dragging. The store's own autoSave (see `load` below) already debounces the
+    // actual disk flush, so this just keeps IPC traffic from firing on every tick.
+    const timeout = window.setTimeout(() => {
+      void Promise.all([
+        store.set(SETTINGS_KEY, settings),
+        store.set(SCENES_KEY, savedScenes),
+        store.set(TIMER_PRESETS_KEY, timerPresets),
+        store.set(TIMER_SESSION_KEY, timerSession),
+      ]).catch(() => {});
 
-    void invoke("save_settings", {
-      settings: {
-        minimizeToTray: settings.minimizeToTray,
-        startMinimized: settings.startMinimized,
-      },
-    }).catch(() => {});
+      void invoke("save_settings", {
+        settings: {
+          minimizeToTray: settings.minimizeToTray,
+          startMinimized: settings.startMinimized,
+          fadeOutOnClose: settings.fadeOutOnClose,
+          fadeOutDuration: settings.fadeOutDuration,
+        },
+      }).catch(() => {});
+    }, 400);
+
+    return () => window.clearTimeout(timeout);
   }, [ready, savedScenes, settings, store, timerPresets, timerSession]);
 
   const activeCount = useMemo(
