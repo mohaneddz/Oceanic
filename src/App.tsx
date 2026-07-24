@@ -13,6 +13,8 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { TimerPage } from "./pages/TimerPage";
 import { ScenePlayer } from "./components/ScenePlayer";
 import { warmSceneVideoCache } from "./lib/videoCache";
+import { getTimerPresetCycle } from "./lib/oceanicState";
+import { TimerPresetsPage } from "./pages/TimerPresetsPage";
 
 function App() {
   const {
@@ -188,7 +190,7 @@ function App() {
   const createSceneFromCurrentMix = (title?: string) => {
     const name = title?.trim() || window.prompt("Scene name", `${activeScene?.title ?? "New"} Mix`)?.trim();
     if (!name) {
-      return;
+      return null;
     }
 
     const baseScene = activeScene ?? savedScenes[0];
@@ -218,12 +220,14 @@ function App() {
       selectedSceneId: nextScene.id,
       lastAppliedSceneId: nextScene.id,
     }));
+    setPlayingScene(nextScene);
+    return nextScene.id;
   };
 
   const duplicateScene = (sceneId: string) => {
     const source = savedScenes.find((scene) => scene.id === sceneId);
     if (!source) {
-      return;
+      return null;
     }
 
     const duplicate: SavedScene = {
@@ -236,6 +240,13 @@ function App() {
     };
 
     setSavedScenes((current) => [...current, duplicate]);
+    setSettings((current) => ({
+      ...current,
+      selectedSceneId: duplicate.id,
+      lastAppliedSceneId: duplicate.id,
+    }));
+    setPlayingScene(duplicate);
+    return duplicate.id;
   };
 
   const setDefaultScene = (sceneId: string) => {
@@ -262,7 +273,7 @@ function App() {
   const exportScene = (sceneId: string) => {
     const scene = savedScenes.find((entry) => entry.id === sceneId);
     if (!scene) {
-      return;
+      return false;
     }
     const payload = JSON.stringify(scene, null, 2);
     const blob = new Blob([payload], { type: "application/json" });
@@ -272,24 +283,69 @@ function App() {
     a.download = `${scene.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    return true;
   };
 
   const selectTimerPreset = (presetId: string) => {
     const preset = timerPresets.find((entry) => entry.id === presetId);
     if (!preset) {
-      return;
+      return null;
     }
+
+    const cycle = getTimerPresetCycle(preset, 0);
 
     setTimerSession({
       activePresetId: preset.id,
       phase: "focus",
       isRunning: false,
-      remainingSeconds: preset.focusMinutes * 60,
+      remainingSeconds: cycle.focusMinutes * 60,
       endsAt: null,
       completedCycles: 0,
       notification: null,
     });
-    applyScene(preset.sceneId);
+    applyScene(cycle.sceneId ?? preset.sceneId);
+    return preset.id;
+  };
+
+  const setActiveTimerPreset = (presetId: string) => {
+    const preset = timerPresets.find((entry) => entry.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    const cycle = getTimerPresetCycle(preset, 0);
+    setTimerSession((current) => ({
+      ...current,
+      activePresetId: preset.id,
+      phase: "focus",
+      isRunning: false,
+      remainingSeconds: cycle.focusMinutes * 60,
+      endsAt: null,
+      notification: null,
+      completedCycles: 0,
+    }));
+  };
+
+  const openFocusSession = () => {
+    const preset =
+      timerPresets.find((entry) => entry.sceneId === activeScene?.id) ?? timerPresets[0] ?? null;
+
+    if (!preset) {
+      return;
+    }
+
+    selectTimerPreset(preset.id);
+    navigateTo("/timer");
+  };
+
+  const openSceneFullscreen = (sceneId: string) => {
+    const scene = savedScenes.find((entry) => entry.id === sceneId);
+    if (!scene) {
+      return;
+    }
+
+    navigateTo("/scenes");
+    setPlayingScene(scene);
   };
 
   const resetTimerSession = (phase: TimerPhase = "focus") => {
@@ -297,12 +353,14 @@ function App() {
       return;
     }
 
+    const cycle = getTimerPresetCycle(activePreset, timerSession.completedCycles);
+
     setTimerSession((current) => ({
       ...current,
       phase,
       isRunning: false,
       remainingSeconds:
-        (phase === "focus" ? activePreset.focusMinutes : activePreset.breakMinutes) * 60,
+        (phase === "focus" ? cycle.focusMinutes : cycle.breakMinutes) * 60,
       endsAt: null,
       notification: null,
     }));
@@ -313,6 +371,8 @@ function App() {
       return;
     }
 
+    const cycle = getTimerPresetCycle(activePreset, timerSession.completedCycles);
+
     setTimerSession((current) => {
       if (current.isRunning) {
         return { ...current, isRunning: false, endsAt: null };
@@ -321,7 +381,7 @@ function App() {
       const remainingSeconds =
         current.remainingSeconds > 0
           ? current.remainingSeconds
-          : (current.phase === "focus" ? activePreset.focusMinutes : activePreset.breakMinutes) * 60;
+          : (current.phase === "focus" ? cycle.focusMinutes : cycle.breakMinutes) * 60;
 
       return {
         ...current,
@@ -331,15 +391,15 @@ function App() {
       };
     });
 
-    if (activePreset.sceneId) {
-      applyScene(activePreset.sceneId, { autoPlay: true });
+    if (cycle.sceneId) {
+      applyScene(cycle.sceneId, { autoPlay: true });
     }
   };
 
   const createTimerPreset = () => {
     const title = window.prompt("Preset name", `Custom ${timerPresets.length + 1}`)?.trim();
     if (!title) {
-      return;
+      return null;
     }
 
     const nextPreset: TimerPreset = {
@@ -353,6 +413,15 @@ function App() {
       breakReminders: false,
       autoStartNextSession: false,
       distractionFree: false,
+      cycles: [
+        {
+          id: `cycle-${Date.now()}`,
+          label: "Cycle 1",
+          focusMinutes: 40,
+          breakMinutes: 10,
+          sceneId: activeScene?.id ?? savedScenes[0]?.id ?? "scene-0",
+        },
+      ],
     };
 
     setTimerPresets((current) => [...current, nextPreset]);
@@ -365,12 +434,13 @@ function App() {
       completedCycles: 0,
       notification: null,
     });
+    return nextPreset.id;
   };
 
   useEffect(() => {
     if (!ready) return;
-    setIsPlaying(settings.autoPlayOnLaunch);
-  }, [ready, settings.autoPlayOnLaunch]);
+    setIsPlaying(false);
+  }, [ready]);
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
@@ -466,13 +536,16 @@ function App() {
       }
 
       const currentPreset = activePreset;
+      const currentCycle = getTimerPresetCycle(currentPreset, timerSession.completedCycles);
       const nextPhase: TimerPhase = timerSession.phase === "focus" ? "break" : "focus";
       const nextSeconds =
-        (nextPhase === "focus" ? currentPreset.focusMinutes : currentPreset.breakMinutes) * 60;
+        (nextPhase === "focus"
+          ? getTimerPresetCycle(currentPreset, timerSession.completedCycles + 1).focusMinutes
+          : currentCycle.breakMinutes) * 60;
       const autoStart = currentPreset.autoStartNextSession;
       const notification =
         nextPhase === "break"
-          ? `${currentPreset.title} complete. Time for a ${currentPreset.breakMinutes} min break.`
+          ? `${currentPreset.title} complete. Time for a ${currentCycle.breakMinutes} min break.`
           : `Break complete. Back into ${currentPreset.title}.`;
 
       if (currentPreset.fadeOutAtEnd) {
@@ -501,8 +574,11 @@ function App() {
         }));
       }
 
-      if (nextPhase === "focus" && currentPreset.sceneId) {
-        applyScene(currentPreset.sceneId);
+      if (nextPhase === "focus") {
+        const nextCycle = getTimerPresetCycle(currentPreset, timerSession.completedCycles + 1);
+        if (nextCycle.sceneId) {
+          applyScene(nextCycle.sceneId);
+        }
       }
     }, 500);
 
@@ -522,7 +598,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!("mediaSession" in navigator)) {
+    if (!navigator.mediaSession || typeof MediaMetadata === "undefined") {
       return;
     }
 
@@ -545,7 +621,13 @@ function App() {
   }, [activeScene?.description, activeScene?.title, settings.globalMediaHotkeys]);
 
   useEffect(() => {
-    const appWindow = getCurrentWindow();
+    let appWindow: ReturnType<typeof getCurrentWindow> | null = null;
+    try {
+      appWindow = getCurrentWindow();
+    } catch {
+      return;
+    }
+
     let unlistenClose: (() => void) | null = null;
 
     void appWindow
@@ -586,8 +668,40 @@ function App() {
     };
   }, []);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | null = null;
+
+    try {
+      const win = getCurrentWindow();
+      const syncFullscreen = async () => {
+        try {
+          const full = await win.isFullscreen();
+          if (!disposed) setIsFullscreen(full);
+        } catch {}
+      };
+      void syncFullscreen();
+      void win.onResized(() => {
+        void syncFullscreen();
+      }).then((off) => {
+        unlisten = off;
+      }).catch(() => {});
+    } catch {}
+
+    return () => {
+      disposed = true;
+      if (unlisten) unlisten();
+    };
+  }, []);
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden rounded-[18px] border border-[#3980cf6b] bg-gradient-to-br from-[#091b31eb] to-[#07172af5] shadow-[inset_0_0_0_1px_rgba(144,189,244,0.06)]">
+    <div className={`flex h-screen w-screen flex-col overflow-hidden bg-gradient-to-br from-[#091b31eb] to-[#07172af5] ${
+      isFullscreen
+        ? "rounded-none border-0 shadow-none"
+        : "rounded-[18px] border border-[#3980cf6b] shadow-[inset_0_0_0_1px_rgba(144,189,244,0.06)]"
+    }`}>
       <Titlebar
         minimizeToTray={settings.minimizeToTray}
         playbackText={isPlaying ? "Currently Playing" : "Paused"}
@@ -626,11 +740,6 @@ function App() {
                     favorite: { ...current.favorite, [soundId]: !current.favorite[soundId] },
                   }))
                 }
-                onSleepTimer={(minutes) => setSettings((current) => ({ ...current, sleepTimerMinutes: minutes }))}
-                onFadeOut={(minutes) => setSettings((current) => ({ ...current, fadeOutMinutes: minutes }))}
-                onToggleAutoPlayOnLaunch={() =>
-                  setSettings((current) => ({ ...current, autoPlayOnLaunch: !current.autoPlayOnLaunch }))
-                }
                 onToggleMultipleSounds={(soundIds, enabled) =>
                   setSettings((current) => {
                     const nextEnabled = { ...current.enabled };
@@ -640,11 +749,13 @@ function App() {
                     return { ...current, enabled: nextEnabled };
                   })
                 }
-                onSelectScene={(sceneId) => applyScene(sceneId)}
+                onApplyScene={(sceneId) => applyScene(sceneId)}
                 onSaveScene={(sceneId) => syncSceneFromCurrentMix(sceneId)}
                 onCreateScene={() => createSceneFromCurrentMix()}
                 onSetDefaultScene={setDefaultScene}
                 onManageScenes={() => navigateTo("/scenes")}
+                onOpenSceneFullscreen={openSceneFullscreen}
+                onOpenFocusSession={openFocusSession}
               />
             }
           />
@@ -655,13 +766,7 @@ function App() {
                 scenes={savedScenes}
                 selectedSceneId={activeScene?.id ?? null}
                 onSelectScene={(sceneId) => setSettings((current) => ({ ...current, selectedSceneId: sceneId }))}
-                onApplyScene={(sceneId) => applyScene(sceneId, { autoPlay: true })}
-                onPreviewScene={(sceneId) => {
-                  const scene = savedScenes.find((entry) => entry.id === sceneId);
-                  if (scene) {
-                    setPlayingScene(scene);
-                  }
-                }}
+                onPreviewScene={openSceneFullscreen}
                 onToggleFavorite={toggleFavoriteScene}
                 onDuplicateScene={duplicateScene}
                 onExportScene={exportScene}
@@ -684,12 +789,25 @@ function App() {
                 onStartPause={startPauseTimer}
                 onReset={() => resetTimerSession(timerSession.phase)}
                 onSelectPreset={selectTimerPreset}
-                onUpdatePreset={updateTimerPreset}
                 onCreatePreset={createTimerPreset}
                 onAdjustFocusMinutes={(delta) => {
                   if (!activePreset) return;
                   const nextFocusMinutes = Math.max(10, Math.min(120, activePreset.focusMinutes + delta));
-                  updateTimerPreset(activePreset.id, { focusMinutes: nextFocusMinutes });
+                  const activeCycleIndex = Math.min(
+                    timerSession.completedCycles,
+                    Math.max(0, activePreset.cycles.length - 1),
+                  );
+                  updateTimerPreset(activePreset.id, {
+                    focusMinutes: nextFocusMinutes,
+                    cycles: activePreset.cycles.map((cycle, index) =>
+                      index === activeCycleIndex
+                        ? {
+                            ...cycle,
+                            focusMinutes: nextFocusMinutes,
+                          }
+                        : cycle,
+                    ),
+                  });
                   setTimerSession((current) => ({
                     ...current,
                     remainingSeconds:
@@ -700,16 +818,26 @@ function App() {
                     endsAt: null,
                   }));
                 }}
-                onChangeScene={(sceneId) => {
-                  if (!activePreset) return;
-                  updateTimerPreset(activePreset.id, { sceneId });
-                  applyScene(sceneId);
-                }}
                 onMasterVolume={(value) => setSettings((current) => ({ ...current, masterVolume: value }))}
                 onOpenMixer={() => navigateTo("/")}
+                onManagePresets={() => navigateTo("/timer/presets")}
                 onDismissNotification={() =>
                   setTimerSession((current) => ({ ...current, notification: null }))
                 }
+              />
+            }
+          />
+          <Route
+            path="/timer/presets"
+            element={
+              <TimerPresetsPage
+                presets={timerPresets}
+                scenes={savedScenes}
+                activePresetId={timerSession.activePresetId}
+                onSelectPreset={setActiveTimerPreset}
+                onUpdatePreset={updateTimerPreset}
+                onCreatePreset={createTimerPreset}
+                onOpenTimer={() => navigateTo("/timer")}
               />
             }
           />
