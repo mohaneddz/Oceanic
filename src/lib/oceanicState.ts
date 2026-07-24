@@ -3,6 +3,7 @@ import { SCENES } from "./scenes";
 import type {
   OceanicSettings,
   SavedScene,
+  TimerPresetCycle,
   TimerPreset,
   TimerSessionState,
 } from "./types";
@@ -13,6 +14,35 @@ const defaultVolumeMap = () =>
 const defaultEnabledMap = () => Object.fromEntries(ALL_SOUNDS.map((sound) => [sound.id, false]));
 
 const defaultFavoriteMap = () => Object.fromEntries(ALL_SOUNDS.map((sound) => [sound.id, false]));
+
+const createTimerPresetCycles = (
+  sceneId: string,
+  focusMinutes: number,
+  breakMinutes: number,
+  count = 4,
+): TimerPresetCycle[] =>
+  Array.from({ length: count }, (_, index) => ({
+    id: `cycle-${index + 1}`,
+    label: `Cycle ${index + 1}`,
+    focusMinutes,
+    breakMinutes,
+    sceneId,
+  }));
+
+export function getTimerPresetCycle(preset: TimerPreset, cycleIndex: number) {
+  if (!preset.cycles.length) {
+    return {
+      id: "cycle-1",
+      label: "Cycle 1",
+      focusMinutes: preset.focusMinutes,
+      breakMinutes: preset.breakMinutes,
+      sceneId: preset.sceneId,
+    } satisfies TimerPresetCycle;
+  }
+
+  const safeIndex = Math.max(0, Math.min(cycleIndex, preset.cycles.length - 1));
+  return preset.cycles[safeIndex] ?? preset.cycles[0];
+}
 
 export function createDefaultSettings(): OceanicSettings {
   const perSoundVolume = defaultVolumeMap();
@@ -40,7 +70,7 @@ export function createDefaultSettings(): OceanicSettings {
     fadeOutMinutes: 30,
     theme: "oceanic",
     hideInactiveSounds: false,
-    autoPlayOnLaunch: true,
+    autoPlayOnLaunch: false,
     audioDucking: false,
     fadeOutOnClose: true,
     fadeOutDuration: 3,
@@ -248,6 +278,12 @@ export function createDefaultTimerPresets(scenes: SavedScene[]): TimerPreset[] {
       breakReminders: false,
       autoStartNextSession: true,
       distractionFree: true,
+      cycles: createTimerPresetCycles(
+        scenes.find((scene) => scene.title === "Deep Focus")?.id ?? fallbackSceneId,
+        50,
+        10,
+        4,
+      ),
     },
     {
       id: "preset-reading",
@@ -260,6 +296,12 @@ export function createDefaultTimerPresets(scenes: SavedScene[]): TimerPreset[] {
       breakReminders: false,
       autoStartNextSession: false,
       distractionFree: false,
+      cycles: createTimerPresetCycles(
+        scenes.find((scene) => scene.title === "Rainy Day")?.id ?? fallbackSceneId,
+        35,
+        8,
+        3,
+      ),
     },
     {
       id: "preset-meditation",
@@ -272,6 +314,12 @@ export function createDefaultTimerPresets(scenes: SavedScene[]): TimerPreset[] {
       breakReminders: false,
       autoStartNextSession: false,
       distractionFree: true,
+      cycles: createTimerPresetCycles(
+        scenes.find((scene) => scene.title === "Morning Calm")?.id ?? fallbackSceneId,
+        20,
+        5,
+        2,
+      ),
     },
     {
       id: "preset-writing",
@@ -284,6 +332,12 @@ export function createDefaultTimerPresets(scenes: SavedScene[]): TimerPreset[] {
       breakReminders: true,
       autoStartNextSession: true,
       distractionFree: false,
+      cycles: createTimerPresetCycles(
+        scenes.find((scene) => scene.title === "Night Escape")?.id ?? fallbackSceneId,
+        45,
+        10,
+        4,
+      ),
     },
   ];
 }
@@ -298,6 +352,31 @@ export function sanitizeTimerPresets(input: unknown, scenes: SavedScene[]): Time
     .filter((preset): preset is Partial<TimerPreset> => Boolean(preset && typeof preset === "object"))
     .map((preset, index) => {
       const source = fallback[index % fallback.length];
+      const rawCycles = Array.isArray((preset as TimerPreset).cycles)
+        ? ((preset as TimerPreset).cycles.filter((cycle) => Boolean(cycle && typeof cycle === "object")) as Partial<TimerPresetCycle>[])
+        : [];
+      const cycles =
+        rawCycles.length
+          ? rawCycles.map((typedCycle, cycleIndex) => ({
+              id: typeof typedCycle.id === "string" ? typedCycle.id : `cycle-${cycleIndex + 1}`,
+              label:
+                typeof typedCycle.label === "string" ? typedCycle.label : `Cycle ${cycleIndex + 1}`,
+              focusMinutes:
+                typeof typedCycle.focusMinutes === "number"
+                  ? typedCycle.focusMinutes
+                  : source.focusMinutes,
+              breakMinutes:
+                typeof typedCycle.breakMinutes === "number"
+                  ? typedCycle.breakMinutes
+                  : source.breakMinutes,
+              sceneId: typeof typedCycle.sceneId === "string" ? typedCycle.sceneId : source.sceneId,
+            }))
+          : createTimerPresetCycles(
+              typeof preset.sceneId === "string" ? preset.sceneId : source.sceneId,
+              typeof preset.focusMinutes === "number" ? preset.focusMinutes : source.focusMinutes,
+              typeof preset.breakMinutes === "number" ? preset.breakMinutes : source.breakMinutes,
+              source.cycles.length || 1,
+            );
       return {
         id: typeof preset.id === "string" ? preset.id : source.id,
         title: typeof preset.title === "string" ? preset.title : source.title,
@@ -321,6 +400,7 @@ export function sanitizeTimerPresets(input: unknown, scenes: SavedScene[]): Time
           typeof preset.distractionFree === "boolean"
             ? preset.distractionFree
             : source.distractionFree,
+        cycles,
       };
     });
 }
@@ -330,11 +410,12 @@ export function createDefaultTimerSession(
   activePresetId?: string | null,
 ): TimerSessionState {
   const preset = presets.find((entry) => entry.id === activePresetId) ?? presets[0];
+  const cycle = preset ? getTimerPresetCycle(preset, 0) : null;
   return {
     activePresetId: preset?.id ?? null,
     phase: "focus",
     isRunning: false,
-    remainingSeconds: (preset?.focusMinutes ?? 25) * 60,
+    remainingSeconds: (cycle?.focusMinutes ?? preset?.focusMinutes ?? 25) * 60,
     endsAt: null,
     completedCycles: 0,
     notification: null,

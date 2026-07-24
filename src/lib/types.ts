@@ -75,6 +75,14 @@ export type SavedScene = {
   updatedAt: number;
 };
 
+export type TimerPresetCycle = {
+  id: string;
+  label: string;
+  focusMinutes: number;
+  breakMinutes: number;
+  sceneId: string;
+};
+
 export type TimerPreset = {
   id: string;
   title: string;
@@ -86,6 +94,7 @@ export type TimerPreset = {
   breakReminders: boolean;
   autoStartNextSession: boolean;
   distractionFree: boolean;
+  cycles: TimerPresetCycle[];
 };
 
 export type TimerPhase = "focus" | "break";
