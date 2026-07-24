@@ -1,5 +1,4 @@
 import {
-  CircleEllipsis,
   Clock3,
   Grid2X2,
   Heart,
@@ -21,20 +20,18 @@ interface ScenesPageProps {
   scenes: SavedScene[];
   selectedSceneId: string | null;
   onSelectScene: (sceneId: string) => void;
-  onApplyScene: (sceneId: string) => void;
   onPreviewScene: (sceneId: string) => void;
   onToggleFavorite: (sceneId: string) => void;
-  onDuplicateScene: (sceneId: string) => void;
-  onExportScene: (sceneId: string) => void;
+  onDuplicateScene: (sceneId: string) => string | null;
+  onExportScene: (sceneId: string) => boolean;
   onSetDefaultScene: (sceneId: string) => void;
-  onCreateScene: () => void;
+  onCreateScene: () => string | null;
 }
 
 export function ScenesPage({
   scenes,
   selectedSceneId,
   onSelectScene,
-  onApplyScene,
   onPreviewScene,
   onToggleFavorite,
   onDuplicateScene,
@@ -108,7 +105,12 @@ export function ScenesPage({
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-xl border border-[#5f9beb] bg-gradient-to-b from-[#2f89ff] to-[#246fd6] px-3 py-2 text-sm text-white"
-            onClick={onCreateScene}
+            onClick={() => {
+              const createdId = onCreateScene();
+              if (createdId) {
+                onSelectScene(createdId);
+              }
+            }}
           >
             <Plus size={16} /> Create Scene
           </button>
@@ -147,19 +149,12 @@ export function ScenesPage({
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => onApplyScene(selected.id)}
-                    className="inline-flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border border-[#6a94c55c] bg-[#112c4ac2] text-[#f0f7ff]"
+                    onClick={() => onPreviewScene(selected.id)}
+                    className="inline-flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border border-[#6a94c55c] bg-[#112c4ac2] text-[#f0f7ff] hover:bg-[#1a406a] hover:scale-105 transition-all"
                     type="button"
-                    aria-label="Apply scene"
+                    aria-label="Play and preview scene"
                   >
                     <Play size={24} fill="currentColor" />
-                  </button>
-                  <button
-                    onClick={() => onPreviewScene(selected.id)}
-                    className="inline-flex items-center justify-center rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8]"
-                    type="button"
-                  >
-                    Preview
                   </button>
                 </div>
               </div>
@@ -185,7 +180,7 @@ export function ScenesPage({
                   key={scene.id}
                   className={viewMode === "grid"
                     ? `cursor-pointer rounded-xl border border-[#6a94c533] bg-[#0d243d99] p-2 ${scene.id === selected.id ? "border-[#5f9bec]" : ""}`
-                    : `grid cursor-pointer grid-cols-[104px_minmax(180px,1fr)_80px_minmax(180px,230px)_30px_30px_30px] items-center gap-2 border-b border-[#6a94c526] bg-[#0d243d99] p-2 ${scene.id === selected.id ? "border-l-2 border-l-[#5f9cec] bg-[#2d82ea22]" : ""}`
+                    : `grid cursor-pointer grid-cols-[104px_minmax(180px,1fr)_80px_minmax(180px,230px)_30px_30px] items-center gap-2 border-b border-[#6a94c526] bg-[#0d243d99] p-2 ${scene.id === selected.id ? "border-l-2 border-l-[#5f9cec] bg-[#2d82ea22]" : ""}`
                   }
                   onClick={() => onSelectScene(scene.id)}
                 >
@@ -204,11 +199,8 @@ export function ScenesPage({
                   <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8ea6bf] hover:bg-[#102b488f]" onClick={(event) => { event.stopPropagation(); onToggleFavorite(scene.id); }}>
                     <Heart size={16} fill={scene.favorite ? "currentColor" : "none"} />
                   </button>
-                  <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8ea6bf] hover:bg-[#102b488f]" onClick={(event) => { event.stopPropagation(); onApplyScene(scene.id); }}>
-                    <Play size={16} fill="currentColor" />
-                  </button>
                   <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8ea6bf] hover:bg-[#102b488f]" onClick={(event) => { event.stopPropagation(); onPreviewScene(scene.id); }}>
-                    <CircleEllipsis size={16} />
+                    <Play size={16} fill="currentColor" />
                   </button>
                 </div>
               ))}
@@ -218,7 +210,12 @@ export function ScenesPage({
 
         <aside className="rounded-2xl border border-[#6a94c538] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] p-3 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
           <h3 className="mb-3 text-4xl font-semibold">Quick Actions</h3>
-          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onDuplicateScene(selected.id)}>
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => {
+            const duplicatedId = onDuplicateScene(selected.id);
+            if (duplicatedId) {
+              onSelectScene(duplicatedId);
+            }
+          }}>
             <SquareArrowOutUpRight size={17} /> Duplicate Scene
           </button>
           <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onSetDefaultScene(selected.id)}>
@@ -227,8 +224,8 @@ export function ScenesPage({
           <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onExportScene(selected.id)}>
             <SquareArrowOutUpRight size={17} /> Export Scene
           </button>
-          <button type="button" className="flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onApplyScene(selected.id)}>
-            <Play size={17} /> Apply to Mixer
+          <button type="button" className="flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb] hover:bg-[#19406bc2] transition-colors" onClick={() => onPreviewScene(selected.id)}>
+            <Play size={17} /> Play Scene
           </button>
         </aside>
       </div>
