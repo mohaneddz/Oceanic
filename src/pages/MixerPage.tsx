@@ -40,7 +40,7 @@ type Props = {
   onToggleMultipleSounds: (soundIds: string[], enabled: boolean) => void;
   onApplyScene: (sceneId: string) => void;
   onSaveScene: (sceneId: string) => void;
-  onCreateScene: () => string | null;
+  onCreateScene: () => void;
   onSetDefaultScene: (sceneId: string) => void;
   onManageScenes: () => void;
   onOpenSceneFullscreen: (sceneId: string) => void;
@@ -436,12 +436,7 @@ export function MixerPage({
                 ))}
                 <button
                   type="button"
-                  onClick={() => {
-                    const createdId = onCreateScene();
-                    if (createdId) {
-                      onOpenSceneFullscreen(createdId);
-                    }
-                  }}
+                  onClick={onCreateScene}
                   className="w-full rounded-b-2xl border border-x-0 border-b-0 border-t-[#6a94c54d] bg-[#0c2239ba] py-2 text-base text-[#dce9f7] hover:bg-[#143253ba] transition-colors"
                 >
                   + New Scene

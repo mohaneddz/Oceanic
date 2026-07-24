@@ -25,7 +25,7 @@ interface ScenesPageProps {
   onDuplicateScene: (sceneId: string) => string | null;
   onExportScene: (sceneId: string) => boolean;
   onSetDefaultScene: (sceneId: string) => void;
-  onCreateScene: () => string | null;
+  onCreateScene: () => void;
 }
 
 export function ScenesPage({
@@ -105,12 +105,7 @@ export function ScenesPage({
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-xl border border-[#5f9beb] bg-gradient-to-b from-[#2f89ff] to-[#246fd6] px-3 py-2 text-sm text-white"
-            onClick={() => {
-              const createdId = onCreateScene();
-              if (createdId) {
-                onSelectScene(createdId);
-              }
-            }}
+            onClick={onCreateScene}
           >
             <Plus size={16} /> Create Scene
           </button>
