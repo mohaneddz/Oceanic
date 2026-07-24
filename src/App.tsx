@@ -1,8 +1,9 @@
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Titlebar from "./components/Titlebar";
 import { useOceanicPreferences } from "./hooks/useOceanicPreferences";
 import { ALL_SOUNDS } from "./lib/sounds";
@@ -12,6 +13,7 @@ import { ScenesPage } from "./pages/ScenesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { TimerPage } from "./pages/TimerPage";
 import { ScenePlayer } from "./components/ScenePlayer";
+import { CreateSceneModal } from "./components/CreateSceneModal";
 import { warmSceneVideoCache } from "./lib/videoCache";
 import { getTimerPresetCycle } from "./lib/oceanicState";
 import { TimerPresetsPage } from "./pages/TimerPresetsPage";
@@ -32,6 +34,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [startWithWindows, setStartWithWindows] = useState(false);
   const [playingScene, setPlayingScene] = useState<SavedScene | null>(null);
+  const [creatingScene, setCreatingScene] = useState(false);
 
   const audioRef = useRef<Record<string, HTMLAudioElement>>({});
   const fadeIntervalRef = useRef<number | null>(null);
@@ -39,6 +42,12 @@ function App() {
   const fadeStartTimeoutRef = useRef<number | null>(null);
   const fadeInProgressRef = useRef(false);
   const closeBypassRef = useRef(false);
+  const settingsRef = useRef(settings);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
 
   const activeScene = useMemo(() => {
     const direct = savedScenes.find((scene) => scene.id === settings.selectedSceneId);
@@ -57,8 +66,7 @@ function App() {
   );
 
   const navigateTo = (path: string) => {
-    window.history.pushState({}, "", path);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(path);
   };
 
   const clearFadeInterval = () => {
@@ -84,11 +92,12 @@ function App() {
   };
 
   const restoreAudioVolumes = () => {
+    const live = settingsRef.current;
     for (const sound of ALL_SOUNDS) {
       const audio = audioRef.current[sound.id];
       if (audio) {
-        const per = settings.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6;
-        audio.volume = Math.max(0, Math.min(1, settings.masterVolume * per));
+        const per = live.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6;
+        audio.volume = Math.max(0, Math.min(1, live.masterVolume * per));
       }
     }
   };
@@ -99,13 +108,14 @@ function App() {
       return;
     }
 
-    const audible = ALL_SOUNDS.filter((sound) => settings.enabled[sound.id]).map((sound) => ({
+    const live = settingsRef.current;
+    const audible = ALL_SOUNDS.filter((sound) => live.enabled[sound.id]).map((sound) => ({
       audio: audioRef.current[sound.id],
       baseVolume: Math.max(
         0,
         Math.min(
           1,
-          settings.masterVolume * (settings.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6),
+          live.masterVolume * (live.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6),
         ),
       ),
     }));
@@ -187,21 +197,22 @@ function App() {
     );
   };
 
-  const createSceneFromCurrentMix = (title?: string) => {
-    const name = title?.trim() || window.prompt("Scene name", `${activeScene?.title ?? "New"} Mix`)?.trim();
-    if (!name) {
-      return null;
-    }
-
+  const createSceneFromCurrentMix = (payload: {
+    title: string;
+    description: string;
+    thumbnail: string;
+    video: string;
+    tags: string[];
+  }) => {
     const baseScene = activeScene ?? savedScenes[0];
     const nextScene: SavedScene = {
       id: `scene-${Date.now()}`,
-      title: name,
-      description: `Saved from the current mixer state on ${new Date().toLocaleDateString()}.`,
+      title: payload.title,
+      description: payload.description,
       duration: baseScene?.duration ?? 45,
-      tags: [...(baseScene?.tags ?? ["Custom"]), "Custom"],
-      thumbnail: baseScene?.thumbnail ?? savedScenes[0]?.thumbnail ?? "",
-      video: baseScene?.video ?? savedScenes[0]?.video ?? "",
+      tags: payload.tags,
+      thumbnail: payload.thumbnail,
+      video: payload.video,
       favorite: false,
       isDefault: false,
       soundIds: ALL_SOUNDS.filter((sound) => settings.enabled[sound.id]).map((sound) => sound.id),
@@ -220,6 +231,7 @@ function App() {
       selectedSceneId: nextScene.id,
       lastAppliedSceneId: nextScene.id,
     }));
+    setCreatingScene(false);
     setPlayingScene(nextScene);
     return nextScene.id;
   };
@@ -458,8 +470,15 @@ function App() {
 
   useEffect(() => {
     for (const sound of ALL_SOUNDS) {
+      const shouldPlay = isPlaying && settings.enabled[sound.id];
       let audio = audioRef.current[sound.id];
       if (!audio) {
+        // Only create (and start preloading) an <audio> element once a sound is
+        // actually enabled - creating all of them up front means preloading the
+        // entire sound library (tens of MB) on every launch.
+        if (!settings.enabled[sound.id]) {
+          continue;
+        }
         audio = new Audio(sound.file);
         audio.loop = true;
         audio.preload = "auto";
@@ -467,7 +486,6 @@ function App() {
       }
       const per = settings.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6;
       audio.volume = Math.max(0, Math.min(1, settings.masterVolume * per));
-      const shouldPlay = isPlaying && settings.enabled[sound.id];
       if (shouldPlay) {
         void audio.play().catch(() => {});
       } else {
@@ -498,7 +516,6 @@ function App() {
     sleepTimeoutRef.current = window.setTimeout(async () => {
       setIsPlaying(false);
       try {
-        const { invoke } = await import("@tauri-apps/api/core");
         await invoke("put_pc_to_sleep");
       } catch (err) {
         console.error("Failed to sleep PC:", err);
@@ -514,7 +531,10 @@ function App() {
         restoreAudioVolumes();
       }
     };
-  }, [isPlaying, settings.enabled, settings.fadeOutMinutes, settings.masterVolume, settings.perSoundVolume, settings.sleepTimerMinutes]);
+    // Intentionally excludes settings.enabled/masterVolume/perSoundVolume: the fade
+    // reads live values from settingsRef when it actually fires, so tweaking the mix
+    // mid-countdown no longer resets the sleep timer back to its full duration.
+  }, [isPlaying, settings.fadeOutMinutes, settings.sleepTimerMinutes]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -585,7 +605,14 @@ function App() {
     return () => {
       window.clearInterval(tick);
     };
-  }, [activePreset, settings.fadeOutDuration, timerSession.endsAt, timerSession.isRunning, timerSession.phase]);
+  }, [
+    activePreset,
+    settings.fadeOutDuration,
+    timerSession.completedCycles,
+    timerSession.endsAt,
+    timerSession.isRunning,
+    timerSession.phase,
+  ]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", settings.theme);
@@ -751,7 +778,7 @@ function App() {
                 }
                 onApplyScene={(sceneId) => applyScene(sceneId)}
                 onSaveScene={(sceneId) => syncSceneFromCurrentMix(sceneId)}
-                onCreateScene={() => createSceneFromCurrentMix()}
+                onCreateScene={() => setCreatingScene(true)}
                 onSetDefaultScene={setDefaultScene}
                 onManageScenes={() => navigateTo("/scenes")}
                 onOpenSceneFullscreen={openSceneFullscreen}
@@ -771,7 +798,7 @@ function App() {
                 onDuplicateScene={duplicateScene}
                 onExportScene={exportScene}
                 onSetDefaultScene={setDefaultScene}
-                onCreateScene={() => createSceneFromCurrentMix()}
+                onCreateScene={() => setCreatingScene(true)}
               />
             }
           />
@@ -865,6 +892,14 @@ function App() {
 
       {playingScene && (
         <ScenePlayer scene={playingScene} onClose={() => setPlayingScene(null)} />
+      )}
+
+      {creatingScene && (
+        <CreateSceneModal
+          defaultVideo={activeScene?.video}
+          onCancel={() => setCreatingScene(false)}
+          onCreate={createSceneFromCurrentMix}
+        />
       )}
     </div>
   );

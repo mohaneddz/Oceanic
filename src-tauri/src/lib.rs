@@ -21,6 +21,18 @@ const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/32x32.png");
 struct AppSettings {
     minimize_to_tray: bool,
     start_minimized: bool,
+    #[serde(default = "default_fade_out_on_close")]
+    fade_out_on_close: bool,
+    #[serde(default = "default_fade_out_duration")]
+    fade_out_duration: u32,
+}
+
+fn default_fade_out_on_close() -> bool {
+    true
+}
+
+fn default_fade_out_duration() -> u32 {
+    3
 }
 
 impl Default for AppSettings {
@@ -28,6 +40,8 @@ impl Default for AppSettings {
         Self {
             minimize_to_tray: true,
             start_minimized: false,
+            fade_out_on_close: default_fade_out_on_close(),
+            fade_out_duration: default_fade_out_duration(),
         }
     }
 }
@@ -85,13 +99,13 @@ fn is_explicit_quit(app: &AppHandle) -> bool {
     state.explicit_quit.lock().map(|value| *value).unwrap_or(false)
 }
 
-fn should_minimize_to_tray(app: &AppHandle) -> bool {
+fn current_settings(app: &AppHandle) -> AppSettings {
     let state = app.state::<AppState>();
     state
         .settings
         .lock()
-        .map(|settings| settings.minimize_to_tray)
-        .unwrap_or(false)
+        .map(|settings| settings.clone())
+        .unwrap_or_default()
 }
 
 fn show_main_window(app: &AppHandle) {
@@ -159,12 +173,8 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-fn get_settings(state: State<'_, AppState>) -> AppSettings {
-    state
-        .settings
-        .lock()
-        .map(|settings| settings.clone())
-        .unwrap_or_default()
+fn get_settings(app: AppHandle) -> AppSettings {
+    current_settings(&app)
 }
 
 #[tauri::command]
@@ -263,9 +273,20 @@ pub fn run() {
 
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let app = window.app_handle();
-                if should_minimize_to_tray(&app) && !is_explicit_quit(&app) {
+                if is_explicit_quit(&app) {
+                    return;
+                }
+
+                let settings = current_settings(&app);
+                if settings.minimize_to_tray {
+                    // Hide to tray entirely on the Rust side - no need to involve the frontend.
                     api.prevent_close();
                     let _ = window.hide();
+                } else if settings.fade_out_on_close && settings.fade_out_duration > 0 {
+                    // Keep the window alive so the frontend's onCloseRequested handler can
+                    // fade audio out and then call `destroy()` itself. Without this, the
+                    // window would already be gone before the frontend's async fade runs.
+                    api.prevent_close();
                 }
             }
         })
