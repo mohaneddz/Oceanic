@@ -1,24 +1,36 @@
 import { Pause, Play, Volume2, VolumeX, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getAppWindow } from "../lib/tauriWindow";
 import type { SavedScene } from "../lib/types";
 
 interface ScenePlayerProps {
   scene: Pick<SavedScene, "title" | "description" | "video">;
   onClose: () => void;
+  /** Fires whenever the video's own soundtrack starts/stops being audible, so the
+   *  app can duck the ambient mix underneath it. */
+  onAudibleChange?: (audible: boolean) => void;
 }
 
-export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
+export function ScenePlayer({ scene, onClose, onAudibleChange }: ScenePlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
+    onAudibleChange?.(isPlaying && !isMuted);
+  }, [isMuted, isPlaying, onAudibleChange]);
+
+  useEffect(() => {
+    return () => onAudibleChange?.(false);
+  }, [onAudibleChange]);
+
+  useEffect(() => {
     let disposed = false;
 
     const enterFullscreen = async () => {
+      const win = getAppWindow();
+      if (!win) return;
       try {
-        const win = getCurrentWindow();
         if (!disposed && !(await win.isFullscreen())) {
           await win.setFullscreen(true);
         }
@@ -32,8 +44,9 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
     return () => {
       disposed = true;
       void (async () => {
+        const win = getAppWindow();
+        if (!win) return;
         try {
-          const win = getCurrentWindow();
           if (await win.isFullscreen()) {
             await win.setFullscreen(false);
           }
@@ -62,6 +75,40 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
   useEffect(() => {
     setIsPlaying(true);
   }, [scene.video]);
+
+  const closePlayer = useCallback(async () => {
+    const win = getAppWindow();
+    if (win) {
+      try {
+        if (await win.isFullscreen()) {
+          await win.setFullscreen(false);
+        }
+      } catch (err) {
+        console.warn("Failed to exit fullscreen:", err);
+      }
+    }
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        void closePlayer();
+        return;
+      }
+      if (event.key === " " || event.key === "k") {
+        event.preventDefault();
+        setIsPlaying((current) => !current);
+        return;
+      }
+      if (event.key === "m") {
+        setIsMuted((current) => !current);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closePlayer]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
@@ -99,12 +146,13 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
           </button>
           <button
             onClick={async () => {
+              const win = getAppWindow();
+              if (!win) return;
               try {
-                const win = getCurrentWindow();
                 const isFull = await win.isFullscreen();
                 await win.setFullscreen(!isFull);
               } catch (err) {
-                console.error("Fullscreen toggle failed:", err);
+                console.warn("Fullscreen toggle failed:", err);
               }
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/30"
@@ -116,19 +164,10 @@ export function ScenePlayer({ scene, onClose }: ScenePlayerProps) {
       </div>
 
       <button
-        onClick={async () => {
-          try {
-            const win = getCurrentWindow();
-            if (await win.isFullscreen()) {
-              await win.setFullscreen(false);
-            }
-          } catch (err) {
-            console.error("Failed to exit fullscreen:", err);
-          }
-          onClose();
-        }}
+        onClick={() => void closePlayer()}
         className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-black/60 z-10"
-        aria-label="Close player"
+        aria-label="Close player (Esc)"
+        title="Close (Esc)"
       >
         <X size={20} />
       </button>
