@@ -1,5 +1,6 @@
 import {
   Clock3,
+  Download,
   Grid2X2,
   Heart,
   List,
@@ -10,6 +11,7 @@ import {
   SquareArrowOutUpRight,
   Star,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { SavedScene } from "../lib/types";
@@ -25,6 +27,7 @@ interface ScenesPageProps {
   onToggleFavorite: (sceneId: string) => void;
   onDuplicateScene: (sceneId: string) => string | null;
   onExportScene: (sceneId: string) => boolean;
+  onImportScene: (file: File) => Promise<boolean>;
   onDeleteScene: (sceneId: string) => boolean;
   onSetDefaultScene: (sceneId: string) => void;
   onCreateScene: () => void;
@@ -47,6 +50,7 @@ export function ScenesPage({
   onToggleFavorite,
   onDuplicateScene,
   onExportScene,
+  onImportScene,
   onDeleteScene,
   onSetDefaultScene,
   onCreateScene,
@@ -55,6 +59,7 @@ export function ScenesPage({
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [importError, setImportError] = useState(false);
 
   const selected = scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0];
 
@@ -76,30 +81,30 @@ export function ScenesPage({
   }
 
   return (
-    <main className="h-full w-full overflow-hidden p-5 text-[#f0f5fc]">
+    <main className="h-full w-full overflow-hidden p-5 text-[var(--text)]">
       <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-5xl font-semibold leading-none">Scenes</h1>
-          <p className="mt-2 text-base text-[#91a7bf]">Saved ambient mixes tied to your own sound layers and visuals.</p>
+          <p className="mt-2 text-base text-[var(--text-muted)]">Saved ambient mixes tied to your own sound layers and visuals.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex w-72 items-center gap-2 rounded-xl border border-[#6a94c547] bg-[#0e253f95] px-3 py-2">
+          <label className="flex w-72 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2">
             <Search size={16} />
             <input
               type="text"
               placeholder="Search scenes..."
               value={query}
               onChange={(event) => setQuery(event.currentTarget.value)}
-              className="w-full bg-transparent text-sm text-[#dce8f6] outline-none placeholder:text-[#91a7bf]"
+              className="w-full bg-transparent text-sm text-[var(--text-soft)] outline-none placeholder:text-[var(--text-muted)]"
             />
           </label>
           <button
             type="button"
             className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
               filterMode === "all"
-                ? "border-[#6a94c552] bg-[#102b488f] text-[#dbe9f8] hover:border-[#6a94c599]"
-                : "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
+                ? "border-[var(--border)] bg-[var(--control)] text-[var(--text-soft)] hover:border-[var(--border-strong)]"
+                : "border-[var(--accent-border)] bg-[var(--accent-fill)] text-white"
             }`}
             onClick={() =>
               setFilterMode(
@@ -112,7 +117,7 @@ export function ScenesPage({
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] disabled:cursor-not-allowed disabled:opacity-40"
             disabled={filterMode === "all" && !query}
             onClick={() => {
               setFilterMode("all");
@@ -123,7 +128,7 @@ export function ScenesPage({
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#5f9beb] bg-gradient-to-b from-[#2f89ff] to-[#246fd6] px-3 py-2 text-sm text-white"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-strong)] px-3 py-2 text-sm text-white"
             onClick={onCreateScene}
           >
             <Plus size={16} /> Create Scene
@@ -133,38 +138,38 @@ export function ScenesPage({
 
       <div className="grid h-[calc(100%-96px)] min-h-0 grid-cols-[minmax(0,1fr)_20rem] gap-3 max-[1400px]:grid-cols-1 max-[1400px]:h-auto max-[1400px]:overflow-y-auto pr-1">
         <section className="flex min-h-0 flex-col gap-3">
-          <article className="overflow-hidden rounded-2xl border border-[#6a94c538] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)] min-[901px]:h-[390px]">
+          <article className="overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)] min-[901px]:h-[390px]">
             <div className="grid h-full min-h-[176px] grid-cols-[42%_1fr] max-[900px]:grid-cols-1">
               <img src={selected.thumbnail} alt={selected.title} className="h-full min-h-[176px] w-full object-cover" loading="eager" decoding="async" />
               <div className="flex justify-between gap-3 p-4">
                 <div>
-                  <span className="inline-flex rounded-md border border-[#508bd999] bg-[#2c80e238] px-2 py-0.5 text-[11px] uppercase tracking-[0.05em] text-[#84b8ff]">
+                  <span className="inline-flex rounded-md border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] uppercase tracking-[0.05em] text-[var(--accent-text)]">
                     {selected.isDefault ? "Default" : "Saved"}
                   </span>
                   <h2 className="mt-2 text-4xl font-semibold leading-[0.95] max-[1200px]:text-3xl">{selected.title}</h2>
-                  <p className="mt-2 text-base text-[#91a7bf]">{selected.description}</p>
+                  <p className="mt-2 text-base text-[var(--text-muted)]">{selected.description}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {selected.tags.map((tag) => (
-                      <span key={tag} className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1 text-xs text-[#9fb4ca]">
+                      <span key={tag} className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1 text-xs text-[var(--text-muted)]">
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <div className="mt-3 flex items-center gap-3 text-sm text-[#91a7bf]">
+                  <div className="mt-3 flex items-center gap-3 text-sm text-[var(--text-muted)]">
                     <span className="inline-flex items-center gap-1"><Clock3 size={14} /> {selected.duration} min</span>
-                    <span className="h-3.5 w-px bg-[#78a5db3d]" />
-                    <span className="inline-flex items-center gap-1 text-[#4d9cff]">
+                    <span className="h-3.5 w-px bg-[var(--border)]" />
+                    <span className="inline-flex items-center gap-1 text-[var(--accent-text)]">
                       <Heart size={14} fill={selected.favorite ? "currentColor" : "none"} />
                       {selected.favorite ? "Favorited" : "Not Favorite"}
                     </span>
-                    <span className="h-3.5 w-px bg-[#78a5db3d]" />
+                    <span className="h-3.5 w-px bg-[var(--border)]" />
                     <span>{selected.soundIds.length} sounds</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => onPreviewScene(selected.id)}
-                    className="inline-flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border border-[#6a94c55c] bg-[#112c4ac2] text-[#f0f7ff] hover:bg-[#1a406a] hover:scale-105 transition-all"
+                    className="inline-flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--control)] text-[var(--text)] hover:bg-[var(--control-hover)] hover:scale-105 transition-all"
                     type="button"
                     aria-label="Play and preview scene"
                   >
@@ -175,30 +180,30 @@ export function ScenesPage({
             </div>
           </article>
 
-          <article className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#6a94c538] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] p-2 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
-            <div className="flex items-center justify-between border-b border-[#6a94c533] px-2 pb-2">
+          <article className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-2 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
+            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-2 pb-2">
               <h3 className="text-3xl font-semibold">All Scenes</h3>
               <div className="flex gap-2">
-                <button className="inline-flex rounded-lg border border-[#6a94c552] bg-[#102b488f] p-2 text-[#dbe9f8]" type="button" aria-label="Grid view" onClick={() => setViewMode("grid")}>
+                <button className="inline-flex rounded-lg border border-[var(--border)] bg-[var(--control)] p-2 text-[var(--text-soft)]" type="button" aria-label="Grid view" onClick={() => setViewMode("grid")}>
                   <Grid2X2 size={15} />
                 </button>
-                <button className="inline-flex rounded-lg border border-[#6a94c552] bg-[#102b488f] p-2 text-[#dbe9f8]" type="button" aria-label="List view" onClick={() => setViewMode("list")}>
+                <button className="inline-flex rounded-lg border border-[var(--border)] bg-[var(--control)] p-2 text-[var(--text-soft)]" type="button" aria-label="List view" onClick={() => setViewMode("list")}>
                   <List size={15} />
                 </button>
               </div>
             </div>
 
             {!filteredScenes.length ? (
-              <div className="mt-2 flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#6a94c533] p-6 text-center">
-                <p className="text-lg text-[#dbe9f8]">No scenes match this view.</p>
-                <p className="text-sm text-[#91a7bf]">
+              <div className="mt-2 flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-subtle)] p-6 text-center">
+                <p className="text-lg text-[var(--text-soft)]">No scenes match this view.</p>
+                <p className="text-sm text-[var(--text-muted)]">
                   {query
                     ? `Nothing found for "${query}".`
                     : `No scenes are tagged "${FILTER_LABELS[filterMode]}".`}
                 </p>
                 <button
                   type="button"
-                  className="mt-1 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                  className="mt-1 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                   onClick={() => {
                     setFilterMode("all");
                     setQuery("");
@@ -208,32 +213,42 @@ export function ScenesPage({
                 </button>
               </div>
             ) : (
-            <div className={`mt-2 min-h-0 flex-1 overflow-auto rounded-xl border border-[#6a94c533] ${viewMode === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-2 p-2" : ""}`}>
+            <div className={`mt-2 min-h-0 flex-1 overflow-auto rounded-xl border border-[var(--border-subtle)] ${viewMode === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-2 p-2" : ""}`}>
               {filteredScenes.map((scene) => (
                 <div
                   key={scene.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={scene.id === selected.id}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelectScene(scene.id);
+                    }
+                  }}
                   className={viewMode === "grid"
-                    ? `cursor-pointer rounded-xl border border-[#6a94c533] bg-[#0d243d99] p-2 ${scene.id === selected.id ? "border-[#5f9bec]" : ""}`
-                    : `grid cursor-pointer grid-cols-[104px_minmax(180px,1fr)_80px_minmax(180px,230px)_30px_30px] items-center gap-2 border-b border-[#6a94c526] bg-[#0d243d99] p-2 ${scene.id === selected.id ? "border-l-2 border-l-[#5f9cec] bg-[#2d82ea22]" : ""}`
+                    ? `cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-2 ${scene.id === selected.id ? "border-[var(--accent-border)]" : ""}`
+                    : `grid cursor-pointer grid-cols-[104px_minmax(180px,1fr)_80px_minmax(180px,230px)_30px_30px] items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--surface-muted)] p-2 ${scene.id === selected.id ? "border-l-2 border-l-[var(--accent-border)] bg-[var(--accent-soft)]" : ""}`
                   }
                   onClick={() => onSelectScene(scene.id)}
                 >
                   <img src={scene.thumbnail} alt={scene.title} className={viewMode === "grid" ? "h-32 w-full rounded-md object-cover" : "h-14 w-[104px] rounded-md object-cover"} loading="lazy" decoding="async" />
                   <div>
-                    <p className="text-sm font-semibold text-[#f0f5fc]">{scene.title}</p>
+                    <p className="text-sm font-semibold text-[var(--text)]">{scene.title}</p>
                   </div>
-                  {viewMode === "list" ? <p className="text-sm text-[#91a7bf]">{scene.duration} min</p> : null}
+                  {viewMode === "list" ? <p className="text-sm text-[var(--text-muted)]">{scene.duration} min</p> : null}
                   <div className="flex flex-wrap gap-1">
                     {scene.tags.map((tag) => (
-                      <span key={tag} className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-0.5 text-[11px] text-[#9fb4ca]">
+                      <span key={tag} className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-0.5 text-[11px] text-[var(--text-muted)]">
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8ea6bf] hover:bg-[#102b488f]" onClick={(event) => { event.stopPropagation(); onToggleFavorite(scene.id); }}>
+                  <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-dim)] hover:bg-[var(--control)]" onClick={(event) => { event.stopPropagation(); onToggleFavorite(scene.id); }}>
                     <Heart size={16} fill={scene.favorite ? "currentColor" : "none"} />
                   </button>
-                  <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#8ea6bf] hover:bg-[#102b488f]" onClick={(event) => { event.stopPropagation(); onPreviewScene(scene.id); }}>
+                  <button type="button" className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-dim)] hover:bg-[var(--control)]" onClick={(event) => { event.stopPropagation(); onPreviewScene(scene.id); }}>
                     <Play size={16} fill="currentColor" />
                   </button>
                 </div>
@@ -243,9 +258,9 @@ export function ScenesPage({
           </article>
         </section>
 
-        <aside className="rounded-2xl border border-[#6a94c538] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] p-3 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
+        <aside className="rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
           <h3 className="mb-3 text-4xl font-semibold">Quick Actions</h3>
-          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => {
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-3 text-lg text-[var(--text-soft)]" onClick={() => {
             const duplicatedId = onDuplicateScene(selected.id);
             if (duplicatedId) {
               onSelectScene(duplicatedId);
@@ -253,25 +268,44 @@ export function ScenesPage({
           }}>
             <SquareArrowOutUpRight size={17} /> Duplicate Scene
           </button>
-          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onSetDefaultScene(selected.id)}>
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-3 text-lg text-[var(--text-soft)]" onClick={() => onSetDefaultScene(selected.id)}>
             <Star size={17} /> Set as Default
           </button>
-          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onExportScene(selected.id)}>
-            <SquareArrowOutUpRight size={17} /> Export Scene
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-3 text-lg text-[var(--text-soft)]" onClick={() => onExportScene(selected.id)}>
+            <Upload size={17} /> Export Scene
           </button>
-          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb] hover:bg-[#19406bc2] transition-colors" onClick={() => onPreviewScene(selected.id)}>
+          <label className="mb-2 flex w-full cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-3 text-lg text-[var(--text-soft)] transition-colors hover:bg-[var(--control-hover)]">
+            <Download size={17} /> Import Scene
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={async (event) => {
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
+                if (!file) return;
+                setImportError(!(await onImportScene(file)));
+              }}
+            />
+          </label>
+          {importError ? (
+            <p className="mb-2 px-1 text-sm text-[var(--danger-text)]">
+              That file isn&apos;t a valid Oceanic scene export.
+            </p>
+          ) : null}
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-3 text-lg text-[var(--text-soft)] hover:bg-[var(--control-hover)] transition-colors" onClick={() => onPreviewScene(selected.id)}>
             <Play size={17} /> Play Scene
           </button>
 
           {pendingDeleteId === selected.id ? (
-            <div className="rounded-xl border border-[#e2606033] bg-[#3a141499] p-3">
-              <p className="text-sm text-[#f4dcdc]">
+            <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-3">
+              <p className="text-sm text-[var(--danger-text)]">
                 Delete &ldquo;{selected.title}&rdquo;? This cannot be undone.
               </p>
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  className="flex-1 rounded-lg border border-[#e2606066] bg-[#8c2f2fcc] px-3 py-2 text-sm text-white transition-colors hover:bg-[#a83838cc]"
+                  className="flex-1 rounded-lg border border-[var(--danger-border)] bg-[var(--danger-solid)] px-3 py-2 text-sm text-white transition-colors hover:bg-[var(--danger-solid-hover)]"
                   onClick={() => {
                     onDeleteScene(selected.id);
                     setPendingDeleteId(null);
@@ -281,7 +315,7 @@ export function ScenesPage({
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-lg border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599]"
+                  className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)]"
                   onClick={() => setPendingDeleteId(null)}
                 >
                   Cancel
@@ -293,7 +327,7 @@ export function ScenesPage({
               type="button"
               disabled={scenes.length <= 1}
               title={scenes.length <= 1 ? "Keep at least one scene" : undefined}
-              className="flex w-full items-center gap-2 rounded-xl border border-[#8c3a3a66] bg-[#3a141966] px-3 py-3 text-lg text-[#f0c9c9] transition-colors hover:border-[#c25a5a99] hover:bg-[#4d1b1b8c] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center gap-2 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-3 text-lg text-[var(--danger-text)] transition-colors hover:border-[var(--danger-border-strong)] hover:bg-[var(--danger-bg-hover)] disabled:cursor-not-allowed disabled:opacity-40"
               onClick={() => setPendingDeleteId(selected.id)}
             >
               <Trash2 size={17} /> Delete Scene

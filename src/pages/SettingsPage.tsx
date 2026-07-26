@@ -38,13 +38,13 @@ function Toggle({
       disabled={disabled}
       className={`relative h-5 w-10 rounded-full border transition ${
         checked
-          ? "border-[#5d99e9d9] bg-gradient-to-b from-[#2a87ff] to-[#246fd6]"
-          : "border-[#6c9dd647] bg-[#7b96b45c]"
+          ? "border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-strong)]"
+          : "border-[var(--border)] bg-[var(--toggle-off)]"
       } ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
       aria-pressed={checked}
     >
       <span
-        className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-[#e8f1ff] transition-transform ${
+        className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-[var(--toggle-knob)] transition-transform ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
@@ -62,12 +62,23 @@ const sidebarItems: { label: string; id: string; Icon: LucideIcon }[] = [
 ];
 
 const panelClass =
-  "rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
+  "rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
 const rowClass =
-  "flex flex-col gap-3 border-b border-[#6a94c526] bg-[#0c233c80] px-3 py-3 last:border-b-0 md:flex-row md:items-center md:justify-between";
+  "flex flex-col gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-3 last:border-b-0 md:flex-row md:items-center md:justify-between";
 
 const buttonPillClass =
-  "rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1.5 text-sm text-[#9fb4ca] transition-colors hover:border-[#6c9dd666] hover:bg-[#15345775]";
+  "rounded-full border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40";
+const pillIdleClass =
+  "border-[var(--border-subtle)] bg-[var(--pill)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:bg-[var(--pill-hover)]";
+const pillActiveClass = "border-[var(--accent-border)] bg-[var(--accent-fill)] text-white";
+
+/**
+ * Selected pills must not also carry the idle background class: both resolve to
+ * `background-color`, and the winner is decided by stylesheet order rather than
+ * the order they appear in the class attribute, so the highlight can silently lose.
+ */
+const pillClass = (active: boolean) =>
+  `${buttonPillClass} ${active ? pillActiveClass : pillIdleClass}`;
 
 function SettingSection({
   id,
@@ -84,16 +95,16 @@ function SettingSection({
 }) {
   return (
     <article id={id} className={`${panelClass} scroll-mt-4 p-3`}>
-      <div className="mb-3 flex items-start gap-3 border-b border-[#6a94c526] pb-3">
-        <span className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#78a5db3d] bg-[#133150b3] text-[#c4d6eb]">
+      <div className="mb-3 flex items-start gap-3 border-b border-[var(--border-subtle)] pb-3">
+        <span className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--icon-chip)] text-[var(--text-soft)]">
           <Icon size={18} />
         </span>
         <div>
           <h2 className="text-3xl font-semibold leading-none">{title}</h2>
-          <p className="mt-2 text-sm text-[#91a7bf]">{description}</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">{description}</p>
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-[#6a94c533]">{children}</div>
+      <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)]">{children}</div>
     </article>
   );
 }
@@ -105,15 +116,15 @@ export function SettingsPage({
   updateSettings,
 }: Props) {
   return (
-    <main className="h-full w-full overflow-hidden p-5 text-[#f0f5fc]">
+    <main className="h-full w-full overflow-hidden p-5 text-[var(--text)]">
       <div className="grid h-full gap-3 min-[1500px]:grid-cols-1 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-2 rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] p-3 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)] min-[1500px]:hidden">
-          <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">SETTINGS</p>
+        <aside className="flex flex-col gap-2 rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] p-3 shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)] min-[1500px]:hidden">
+          <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">SETTINGS</p>
           {sidebarItems.map(({ label, id, Icon }) => (
             <a
               key={id}
               href={`#${id}`}
-              className="flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-left text-base text-[#d7e5f4] no-underline transition hover:border-[#6a94c547] hover:bg-[#102b488f] hover:text-white"
+              className="flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-left text-base text-[var(--text-soft)] no-underline transition hover:border-[var(--border)] hover:bg-[var(--control)] hover:text-white"
             >
               <Icon size={16} /> {label}
             </a>
@@ -121,7 +132,7 @@ export function SettingsPage({
 
           <Link
             to="/"
-            className="mt-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-center text-sm text-[#dbe9f8] no-underline"
+            className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-center text-sm text-[var(--text-soft)] no-underline"
           >
             Back to Mixer
           </Link>
@@ -131,7 +142,7 @@ export function SettingsPage({
           <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-5xl font-semibold leading-none">Settings</h1>
-              <p className="mt-2 max-w-3xl text-base text-[#91a7bf]">
+              <p className="mt-2 max-w-3xl text-base text-[var(--text-muted)]">
                 Everything is on one page now. The sidebar only jumps between sections, and it hides
                 automatically on wider layouts where the cards can stand on their own.
               </p>
@@ -139,7 +150,7 @@ export function SettingsPage({
 
             <Link
               to="/"
-              className="inline-flex items-center justify-center rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] no-underline"
+              className="inline-flex items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] no-underline"
             >
               Back to Mixer
             </Link>
@@ -155,7 +166,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Launch on startup</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Automatically launch Oceanic when you sign in to Windows.
                   </p>
                 </div>
@@ -164,7 +175,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Start minimized to tray</p>
-                  <p className="text-sm text-[#91a7bf]">Oceanic will start in the system tray.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Oceanic will start in the system tray.</p>
                 </div>
                 <Toggle
                   checked={settings.startMinimized}
@@ -175,7 +186,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Auto-play last scene</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Automatically resume the last active scene when the app starts.
                   </p>
                 </div>
@@ -187,7 +198,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Close and minimize to tray</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Keep playing while hidden in your system tray.
                   </p>
                 </div>
@@ -207,7 +218,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Hide inactive sounds</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Automatically hide sounds that have not been used in a scene.
                   </p>
                 </div>
@@ -219,7 +230,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Audio ducking</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Lower the ambient mix while a scene video is playing with its own sound.
                   </p>
                 </div>
@@ -231,7 +242,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Fade out when closing</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Gradually fade out all audio when the app closes or is quit.
                   </p>
                 </div>
@@ -247,11 +258,7 @@ export function SettingsPage({
                         type="button"
                         disabled={!settings.fadeOutOnClose}
                         onClick={() => updateSettings({ fadeOutDuration: value })}
-                        className={`${buttonPillClass} disabled:cursor-not-allowed disabled:opacity-40 ${
-                          settings.fadeOutDuration === value
-                            ? "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
-                            : ""
-                        }`}
+                        className={pillClass(settings.fadeOutDuration === value)}
                       >
                         {value}s
                       </button>
@@ -262,7 +269,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Master volume</p>
-                  <p className="text-sm text-[#91a7bf]">Control the app-wide audio gain.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Control the app-wide audio gain.</p>
                 </div>
                 <div className="flex min-w-[16rem] items-center gap-3">
                   <input
@@ -272,9 +279,9 @@ export function SettingsPage({
                     step={0.01}
                     value={settings.masterVolume}
                     onChange={(event) => updateSettings({ masterVolume: Number(event.currentTarget.value) })}
-                    className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#2d7de4] accent-[#2f89ff]"
+                    className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[var(--accent-track)] accent-[var(--accent)]"
                   />
-                  <span className="w-14 shrink-0 text-right text-sm text-[#9db2c9]">
+                  <span className="w-14 shrink-0 text-right text-sm text-[var(--text-muted)]">
                     {Math.round(settings.masterVolume * 100)}%
                   </span>
                 </div>
@@ -290,7 +297,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Sleep timer</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Shut everything down automatically after a set amount of time.
                   </p>
                 </div>
@@ -300,11 +307,7 @@ export function SettingsPage({
                       key={String(value)}
                       type="button"
                       onClick={() => updateSettings({ sleepTimerMinutes: value })}
-                      className={`${buttonPillClass} ${
-                        settings.sleepTimerMinutes === value
-                          ? "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
-                          : ""
-                      }`}
+                      className={pillClass(settings.sleepTimerMinutes === value)}
                     >
                       {value === null ? "Off" : `${value}m`}
                     </button>
@@ -314,7 +317,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Fade before sleep</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     If a sleep timer is active, fade audio before the final shutdown.
                   </p>
                 </div>
@@ -334,11 +337,7 @@ export function SettingsPage({
                         type="button"
                         disabled={settings.fadeOutMinutes === null}
                         onClick={() => updateSettings({ fadeOutMinutes: value })}
-                        className={`${buttonPillClass} disabled:cursor-not-allowed disabled:opacity-40 ${
-                          settings.fadeOutMinutes === value
-                            ? "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
-                            : ""
-                        }`}
+                        className={pillClass(settings.fadeOutMinutes === value)}
                       >
                         {value}m
                       </button>
@@ -357,7 +356,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Theme</p>
-                  <p className="text-sm text-[#91a7bf]">Choose your preferred app theme.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Choose your preferred app theme.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {THEMES.map((theme) => (
@@ -365,11 +364,7 @@ export function SettingsPage({
                       key={theme.name}
                       type="button"
                       onClick={() => updateSettings({ theme: theme.name })}
-                      className={`${buttonPillClass} ${
-                        settings.theme === theme.name
-                          ? "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
-                          : ""
-                      }`}
+                      className={pillClass(settings.theme === theme.name)}
                     >
                       {theme.label}
                     </button>
@@ -379,7 +374,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Media key integration</p>
-                  <p className="text-sm text-[#91a7bf]">
+                  <p className="text-sm text-[var(--text-muted)]">
                     Expose play and pause controls through the system media session when supported.
                   </p>
                 </div>
@@ -399,7 +394,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Reduce motion</p>
-                  <p className="text-sm text-[#91a7bf]">Minimize animations and visual effects.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Minimize animations and visual effects.</p>
                 </div>
                 <Toggle
                   checked={settings.reduceMotion}
@@ -409,7 +404,7 @@ export function SettingsPage({
               <div className={rowClass}>
                 <div>
                   <p className="text-base">Larger UI</p>
-                  <p className="text-sm text-[#91a7bf]">Increase the whole interface scale slightly.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Increase the whole interface scale slightly.</p>
                 </div>
                 <Toggle
                   checked={settings.largerUI}
@@ -424,19 +419,19 @@ export function SettingsPage({
               title="About"
               description="Project information and a quick reminder of what Oceanic is for."
             >
-              <div className="bg-[#0c233c80] p-4">
-                <p className="text-sm text-[#dbe9f8]">
+              <div className="bg-[var(--surface)] p-4">
+                <p className="text-sm text-[var(--text-soft)]">
                   Oceanic is a background ambient noise generator aimed at keeping you focused and
                   relaxed.
                 </p>
-                <p className="mt-2 text-sm text-[#91a7bf]">
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
                   This project is built using Tauri, React, and Vite.
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs text-[#9fb4ca]">
-                  <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1">
+                <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--text-muted)]">
+                  <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1">
                     Settings are now section-based
                   </span>
-                  <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1">
+                  <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1">
                     Sidebar is only a table of contents
                   </span>
                 </div>
@@ -444,7 +439,7 @@ export function SettingsPage({
             </SettingSection>
           </div>
 
-          <footer className="mt-3 flex justify-between px-1 text-xs text-[#91a7bf]">
+          <footer className="mt-3 flex justify-between px-1 text-xs text-[var(--text-muted)]">
             <span>Thank you for supporting calm focus and better days.</span>
             <span className="inline-flex items-center gap-1">
               <Clock3 size={12} /> v1.4.2
