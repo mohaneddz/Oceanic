@@ -19,9 +19,9 @@ type CreatePresetModalProps = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-[#f0f5fc] outline-none focus:border-[#6a94c580]";
-const labelClass = "block rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3";
-const captionClass = "mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]";
+  "w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--border-strong)]";
+const labelClass = "block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3";
+const captionClass = "mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]";
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -65,16 +65,16 @@ export function CreatePresetModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020b14cc] px-4 py-6 backdrop-blur-sm">
-      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#6a94c526] px-4 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] px-4 py-6 backdrop-blur-sm">
+      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-4">
           <div>
-            <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">NEW PRESET</p>
-            <h2 className="text-3xl font-semibold leading-none text-[#f0f5fc]">Create Preset</h2>
+            <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">NEW PRESET</p>
+            <h2 className="text-3xl font-semibold leading-none text-[var(--text)]">Create Preset</h2>
           </div>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#6a94c552] bg-[#102b488f] text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--control)] text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
             onClick={onCancel}
             aria-label="Cancel"
           >
@@ -162,16 +162,16 @@ export function CreatePresetModal({
             </select>
           </label>
 
-          <p className="mt-3 px-1 text-sm text-[#91a7bf]">
+          <p className="mt-3 px-1 text-sm text-[var(--text-muted)]">
             Every cycle starts from these timings and this scene. You can fine-tune individual
             cycles afterwards from the preset editor.
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[#6a94c526] bg-[#08192bf2] px-4 py-4">
+        <div className="flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
             onClick={onCancel}
           >
             Cancel
@@ -179,7 +179,7 @@ export function CreatePresetModal({
           <button
             type="button"
             disabled={!trimmedTitle}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#5f9beb] bg-gradient-to-b from-[#2f89ff] to-[#246fd6] px-4 py-2 text-sm text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-strong)] px-4 py-2 text-sm text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             onClick={handleCreate}
           >
             Create Preset

@@ -20,7 +20,7 @@ type CreateSceneModalProps = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-[#f0f5fc] outline-none focus:border-[#6a94c580]";
+  "w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--border-strong)]";
 
 export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSceneModalProps) {
   const [title, setTitle] = useState("");
@@ -56,16 +56,16 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020b14cc] px-4 py-6 backdrop-blur-sm">
-      <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#6a94c526] px-4 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] px-4 py-6 backdrop-blur-sm">
+      <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-4">
           <div>
-            <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">NEW SCENE</p>
-            <h2 className="text-3xl font-semibold leading-none text-[#f0f5fc]">Create Scene</h2>
+            <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">NEW SCENE</p>
+            <h2 className="text-3xl font-semibold leading-none text-[var(--text)]">Create Scene</h2>
           </div>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#6a94c552] bg-[#102b488f] text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--control)] text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
             onClick={onCancel}
             aria-label="Cancel"
           >
@@ -74,8 +74,8 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <label className="block rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-            <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">SCENE NAME</span>
+          <label className="block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+            <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">SCENE NAME</span>
             <input
               autoFocus
               type="text"
@@ -91,8 +91,8 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
             />
           </label>
 
-          <label className="mt-3 block rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-            <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">DESCRIPTION (OPTIONAL)</span>
+          <label className="mt-3 block rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+            <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">DESCRIPTION (OPTIONAL)</span>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.currentTarget.value)}
@@ -103,7 +103,7 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
           </label>
 
           <div className="mt-4">
-            <p className="mb-2 text-xs tracking-[0.12em] text-[#8ca4c0]">CHOOSE A BACKDROP</p>
+            <p className="mb-2 text-xs tracking-[0.12em] text-[var(--text-dim)]">CHOOSE A BACKDROP</p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
               {SCENES.map((scene) => (
                 <button
@@ -112,8 +112,8 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
                   onClick={() => setBackdropId(scene.id)}
                   className={`group relative overflow-hidden rounded-xl border transition ${
                     scene.id === backdropId
-                      ? "border-[#5f9bec]"
-                      : "border-[#6a94c533] hover:border-[#6a94c580]"
+                      ? "border-[var(--accent-border)]"
+                      : "border-[var(--border-subtle)] hover:border-[var(--border-strong)]"
                   }`}
                   aria-label={`Use ${scene.title} as backdrop`}
                   aria-pressed={scene.id === backdropId}
@@ -126,7 +126,7 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
                     decoding="async"
                   />
                   {scene.id === backdropId ? (
-                    <span className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#2f89ff] text-white">
+                    <span className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)] text-white">
                       <Check size={12} />
                     </span>
                   ) : null}
@@ -139,10 +139,10 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[#6a94c526] bg-[#08192bf2] px-4 py-4">
+        <div className="flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
             onClick={onCancel}
           >
             Cancel
@@ -150,7 +150,7 @@ export function CreateSceneModal({ defaultVideo, onCancel, onCreate }: CreateSce
           <button
             type="button"
             disabled={!trimmedTitle}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#5f9beb] bg-gradient-to-b from-[#2f89ff] to-[#246fd6] px-4 py-2 text-sm text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-strong)] px-4 py-2 text-sm text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             onClick={handleCreate}
           >
             Create Scene
