@@ -19,6 +19,7 @@ import { getTimerPresetCycle } from "./lib/oceanicState";
 import { TimerPresetsPage } from "./pages/TimerPresetsPage";
 import { CreatePresetModal } from "./components/CreatePresetModal";
 import { createId } from "./lib/ids";
+import { notify } from "./lib/notify";
 
 const DUCK_GAIN = 0.3;
 
@@ -344,6 +345,50 @@ function App() {
         scene.id === sceneId ? { ...scene, favorite: !scene.favorite, updatedAt: Date.now() } : scene,
       ),
     );
+  };
+
+  /** Reads a scene JSON produced by exportScene and adds it as a new scene. */
+  const importScene = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as Partial<SavedScene>;
+      if (!parsed || typeof parsed !== "object" || typeof parsed.title !== "string") {
+        return false;
+      }
+
+      const template = activeScene ?? savedScenes[0];
+      const imported: SavedScene = {
+        id: createId("scene"),
+        title: parsed.title,
+        description:
+          typeof parsed.description === "string" ? parsed.description : "Imported scene.",
+        duration: typeof parsed.duration === "number" ? parsed.duration : (template?.duration ?? 45),
+        tags: Array.isArray(parsed.tags)
+          ? parsed.tags.filter((tag): tag is string => typeof tag === "string")
+          : ["Imported"],
+        thumbnail:
+          typeof parsed.thumbnail === "string" && parsed.thumbnail
+            ? parsed.thumbnail
+            : (template?.thumbnail ?? ""),
+        video:
+          typeof parsed.video === "string" && parsed.video ? parsed.video : (template?.video ?? ""),
+        favorite: false,
+        isDefault: false,
+        soundIds: Array.isArray(parsed.soundIds)
+          ? parsed.soundIds.filter((id): id is string => typeof id === "string")
+          : [],
+        soundVolumes:
+          parsed.soundVolumes && typeof parsed.soundVolumes === "object"
+            ? parsed.soundVolumes
+            : {},
+        updatedAt: Date.now(),
+      };
+
+      setSavedScenes((current) => [...current, imported]);
+      setSettings((current) => ({ ...current, selectedSceneId: imported.id }));
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const deleteScene = (sceneId: string) => {
@@ -723,27 +768,22 @@ function App() {
         startFadeOutProcess(Math.max(1000, settings.fadeOutDuration * 1000), restoreAudioVolumes);
       }
 
-      if (nextPhase === "break" && currentPreset.breakReminders) {
-        setTimerSession((current) => ({
-          ...current,
-          notification,
-          phase: nextPhase,
-          remainingSeconds: nextSeconds,
-          isRunning: autoStart,
-          endsAt: autoStart ? Date.now() + nextSeconds * 1000 : null,
-        }));
-      } else {
-        setTimerSession((current) => ({
-          ...current,
-          notification,
-          phase: nextPhase,
-          remainingSeconds: nextSeconds,
-          isRunning: autoStart,
-          endsAt: autoStart ? Date.now() + nextSeconds * 1000 : null,
-          completedCycles:
-            nextPhase === "focus" ? current.completedCycles + 1 : current.completedCycles,
-        }));
+      // Break reminders also fire a desktop notification, since the whole point
+      // is to reach you when Oceanic is hidden in the tray.
+      if (currentPreset.breakReminders) {
+        void notify(nextPhase === "break" ? "Time for a break" : "Back to focus", notification);
       }
+
+      setTimerSession((current) => ({
+        ...current,
+        notification,
+        phase: nextPhase,
+        remainingSeconds: nextSeconds,
+        isRunning: autoStart,
+        endsAt: autoStart ? Date.now() + nextSeconds * 1000 : null,
+        completedCycles:
+          nextPhase === "focus" ? current.completedCycles + 1 : current.completedCycles,
+      }));
 
       if (nextPhase === "focus") {
         const nextCycle = getTimerPresetCycle(currentPreset, timerSession.completedCycles + 1);
@@ -875,10 +915,10 @@ function App() {
   }, []);
 
   return (
-    <div className={`flex h-screen w-screen flex-col overflow-hidden bg-gradient-to-br from-[#091b31eb] to-[#07172af5] ${
+    <div className={`flex h-screen w-screen flex-col overflow-hidden bg-gradient-to-br from-[var(--shell-from)] to-[var(--shell-to)] ${
       isFullscreen
         ? "rounded-none border-0 shadow-none"
-        : "rounded-[18px] border border-[#3980cf6b] shadow-[inset_0_0_0_1px_rgba(144,189,244,0.06)]"
+        : "rounded-[18px] border border-[var(--shell-border)] shadow-[inset_0_0_0_1px_var(--shell-ring)]"
     }`}>
       <Titlebar
         minimizeToTray={settings.minimizeToTray}
@@ -925,6 +965,7 @@ function App() {
                 onToggleFavorite={toggleFavoriteScene}
                 onDuplicateScene={duplicateScene}
                 onExportScene={exportScene}
+                onImportScene={importScene}
                 onDeleteScene={deleteScene}
                 onSetDefaultScene={setDefaultScene}
                 onCreateScene={() => setCreatingScene(true)}
