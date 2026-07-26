@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
   SquareArrowOutUpRight,
   Star,
+  Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { SavedScene } from "../lib/types";
@@ -24,9 +25,19 @@ interface ScenesPageProps {
   onToggleFavorite: (sceneId: string) => void;
   onDuplicateScene: (sceneId: string) => string | null;
   onExportScene: (sceneId: string) => boolean;
+  onDeleteScene: (sceneId: string) => boolean;
   onSetDefaultScene: (sceneId: string) => void;
   onCreateScene: () => void;
 }
+
+const FILTER_LABELS: Record<FilterMode, string> = {
+  all: "All",
+  favorites: "Favorites",
+  short: "30 min or less",
+  long: "60 min or more",
+};
+
+const FILTER_ORDER: FilterMode[] = ["all", "favorites", "short", "long"];
 
 export function ScenesPage({
   scenes,
@@ -36,12 +47,14 @@ export function ScenesPage({
   onToggleFavorite,
   onDuplicateScene,
   onExportScene,
+  onDeleteScene,
   onSetDefaultScene,
   onCreateScene,
 }: ScenesPageProps) {
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const selected = scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0];
 
@@ -83,24 +96,30 @@ export function ScenesPage({
           </label>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8]"
+            className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
+              filterMode === "all"
+                ? "border-[#6a94c552] bg-[#102b488f] text-[#dbe9f8] hover:border-[#6a94c599]"
+                : "border-[#5d97e6cc] bg-[#2264b7b8] text-white"
+            }`}
             onClick={() =>
-              setFilterMode((prev) =>
-                prev === "all" ? "favorites" : prev === "favorites" ? "short" : prev === "short" ? "long" : "all",
+              setFilterMode(
+                (prev) => FILTER_ORDER[(FILTER_ORDER.indexOf(prev) + 1) % FILTER_ORDER.length],
               )
             }
+            title="Cycle scene filters"
           >
-            <SlidersHorizontal size={15} /> Filters
+            <SlidersHorizontal size={15} /> {FILTER_LABELS[filterMode]}
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={filterMode === "all" && !query}
             onClick={() => {
               setFilterMode("all");
               setQuery("");
             }}
           >
-            All Scenes
+            Clear
           </button>
           <button
             type="button"
@@ -169,6 +188,26 @@ export function ScenesPage({
               </div>
             </div>
 
+            {!filteredScenes.length ? (
+              <div className="mt-2 flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#6a94c533] p-6 text-center">
+                <p className="text-lg text-[#dbe9f8]">No scenes match this view.</p>
+                <p className="text-sm text-[#91a7bf]">
+                  {query
+                    ? `Nothing found for "${query}".`
+                    : `No scenes are tagged "${FILTER_LABELS[filterMode]}".`}
+                </p>
+                <button
+                  type="button"
+                  className="mt-1 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                  onClick={() => {
+                    setFilterMode("all");
+                    setQuery("");
+                  }}
+                >
+                  Show all scenes
+                </button>
+              </div>
+            ) : (
             <div className={`mt-2 min-h-0 flex-1 overflow-auto rounded-xl border border-[#6a94c533] ${viewMode === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-2 p-2" : ""}`}>
               {filteredScenes.map((scene) => (
                 <div
@@ -200,6 +239,7 @@ export function ScenesPage({
                 </div>
               ))}
             </div>
+            )}
           </article>
         </section>
 
@@ -219,9 +259,46 @@ export function ScenesPage({
           <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb]" onClick={() => onExportScene(selected.id)}>
             <SquareArrowOutUpRight size={17} /> Export Scene
           </button>
-          <button type="button" className="flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb] hover:bg-[#19406bc2] transition-colors" onClick={() => onPreviewScene(selected.id)}>
+          <button type="button" className="mb-2 flex w-full items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-3 text-lg text-[#e4eefb] hover:bg-[#19406bc2] transition-colors" onClick={() => onPreviewScene(selected.id)}>
             <Play size={17} /> Play Scene
           </button>
+
+          {pendingDeleteId === selected.id ? (
+            <div className="rounded-xl border border-[#e2606033] bg-[#3a141499] p-3">
+              <p className="text-sm text-[#f4dcdc]">
+                Delete &ldquo;{selected.title}&rdquo;? This cannot be undone.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg border border-[#e2606066] bg-[#8c2f2fcc] px-3 py-2 text-sm text-white transition-colors hover:bg-[#a83838cc]"
+                  onClick={() => {
+                    onDeleteScene(selected.id);
+                    setPendingDeleteId(null);
+                  }}
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599]"
+                  onClick={() => setPendingDeleteId(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={scenes.length <= 1}
+              title={scenes.length <= 1 ? "Keep at least one scene" : undefined}
+              className="flex w-full items-center gap-2 rounded-xl border border-[#8c3a3a66] bg-[#3a141966] px-3 py-3 text-lg text-[#f0c9c9] transition-colors hover:border-[#c25a5a99] hover:bg-[#4d1b1b8c] disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => setPendingDeleteId(selected.id)}
+            >
+              <Trash2 size={17} /> Delete Scene
+            </button>
+          )}
         </aside>
       </div>
     </main>

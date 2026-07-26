@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, memo, useEffect, useMemo, useState } from "react";
 import {
   AudioLines,
   Bird,
@@ -74,6 +74,87 @@ const rangeClass =
 
 const shellPanelClass =
   "rounded-[1.125rem] border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
+
+type SoundCardProps = {
+  id: string;
+  title: string;
+  group: string;
+  icon: LucideIcon;
+  enabled: boolean;
+  volume: number;
+  favorite: boolean;
+  onToggle: (soundId: string) => void;
+  onVolume: (soundId: string, volume: number) => void;
+  onFavorite: (soundId: string) => void;
+};
+
+/**
+ * Memoized so dragging one volume slider only re-renders that card instead of
+ * all ~43 of them on every input event.
+ */
+const SoundCard = memo(function SoundCard({
+  id,
+  title,
+  group,
+  icon: Icon,
+  enabled,
+  volume,
+  favorite,
+  onToggle,
+  onVolume,
+  onFavorite,
+}: SoundCardProps) {
+  return (
+    <article
+      onClick={() => onToggle(id)}
+      className={`rounded-2xl border p-3 cursor-pointer select-none transition-all duration-300 ${
+        enabled
+          ? "border-[#5695e4c2] bg-gradient-to-br from-[#14385ebd] to-[#0b2139cc] shadow-[0_0.625rem_1.375rem_rgba(4,16,28,0.34),inset_0_0_0_1px_rgba(95,156,236,0.22)] hover:border-[#73acfc] hover:shadow-[0_0.75rem_1.75rem_rgba(4,16,28,0.4)]"
+          : "border-[#6695ca3d] bg-[#0e27428f] hover:border-[#477bc2a0] hover:bg-[#122e4dcf]"
+      }`}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#78a5db3d] bg-[#133150b3] text-[#c4d6eb]">
+            <Icon size={16} />
+          </span>
+          <div>
+            <h3 className="text-xl font-medium leading-tight text-[#f0f5fc]">{title}</h3>
+            <p className="mt-0.5 text-[0.6875rem] uppercase tracking-[0.08em] text-[#7e9bbb]">{group}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          onChange={(event) => onVolume(id, Number(event.currentTarget.value))}
+          onClick={(event) => event.stopPropagation()}
+          className={rangeClass}
+          aria-label={`${title} volume`}
+        />
+        <span className="text-base text-[#9db2c9]">{Math.round(volume * 100)}%</span>
+        <button
+          type="button"
+          className={`inline-flex h-6 w-6 items-center justify-center rounded-full border border-transparent ${
+            favorite ? "text-[#7fc1ff]" : "text-[#8ea6bf]"
+          } hover:border-[#6a94c559] hover:bg-[#102b488f] hover:text-[#e3effe]`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onFavorite(id);
+          }}
+          aria-label={`Favorite ${title}`}
+        >
+          <Heart size={14} fill={favorite ? "currentColor" : "none"} />
+        </button>
+      </div>
+    </article>
+  );
+});
 
 export function MixerPage({
   isPlaying,
@@ -290,53 +371,18 @@ export function MixerPage({
                         <div className="h-px flex-1 bg-gradient-to-r from-[#6695ca40] to-transparent" />
                       </div>
                     )}
-                    <article
-                    onClick={() => onToggleSound(sound.id)}
-                    className={`rounded-2xl border p-3 cursor-pointer select-none transition-all duration-300 ${
-                        enabled
-                          ? "border-[#5695e4c2] bg-gradient-to-br from-[#14385ebd] to-[#0b2139cc] shadow-[0_0.625rem_1.375rem_rgba(4,16,28,0.34),inset_0_0_0_1px_rgba(95,156,236,0.22)] hover:border-[#73acfc] hover:shadow-[0_0.75rem_1.75rem_rgba(4,16,28,0.4)]"
-                          : "border-[#6695ca3d] bg-[#0e27428f] hover:border-[#477bc2a0] hover:bg-[#122e4dcf]"
-                      }`}
-                    >
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#78a5db3d] bg-[#133150b3] text-[#c4d6eb]">
-                            <Icon size={16} />
-                          </span>
-                          <div>
-                            <h3 className="text-xl font-medium leading-tight text-[#f0f5fc]">{sound.title}</h3>
-                            <p className="mt-0.5 text-[0.6875rem] uppercase tracking-[0.08em] text-[#7e9bbb]">{sound.group}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          value={volume}
-                          onChange={(event) => onSoundVolume(sound.id, Number(event.currentTarget.value))}
-                          onClick={(event) => event.stopPropagation()}
-                          className={rangeClass}
-                        />
-                        <span className="text-base text-[#9db2c9]">{Math.round(volume * 100)}%</span>
-                        <button
-                          type="button"
-                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full border border-transparent ${
-                            favorite ? "text-[#7fc1ff]" : "text-[#8ea6bf]"
-                          } hover:border-[#6a94c559] hover:bg-[#102b488f] hover:text-[#e3effe]`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onToggleFavorite(sound.id);
-                          }}
-                          aria-label={`Favorite ${sound.title}`}
-                        >
-                          <Heart size={14} fill={favorite ? "currentColor" : "none"} />
-                        </button>
-                      </div>
-                    </article>
+                    <SoundCard
+                      id={sound.id}
+                      title={sound.title}
+                      group={sound.group}
+                      icon={Icon}
+                      enabled={enabled}
+                      volume={volume}
+                      favorite={favorite}
+                      onToggle={onToggleSound}
+                      onVolume={onSoundVolume}
+                      onFavorite={onToggleFavorite}
+                    />
                   </Fragment>
                 );
               })}
