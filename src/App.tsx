@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Titlebar from "./components/Titlebar";
 import { useOceanicPreferences } from "./hooks/useOceanicPreferences";
@@ -17,6 +17,10 @@ import { CreateSceneModal } from "./components/CreateSceneModal";
 import { warmSceneVideoCache } from "./lib/videoCache";
 import { getTimerPresetCycle } from "./lib/oceanicState";
 import { TimerPresetsPage } from "./pages/TimerPresetsPage";
+import { CreatePresetModal } from "./components/CreatePresetModal";
+import { createId } from "./lib/ids";
+
+const DUCK_GAIN = 0.3;
 
 function App() {
   const {
@@ -35,6 +39,18 @@ function App() {
   const [startWithWindows, setStartWithWindows] = useState(false);
   const [playingScene, setPlayingScene] = useState<SavedScene | null>(null);
   const [creatingScene, setCreatingScene] = useState(false);
+  const [creatingPreset, setCreatingPreset] = useState(false);
+  /** True while the fullscreen scene video is playing with its own audio unmuted. */
+  const [sceneAudioActive, setSceneAudioActive] = useState(false);
+
+  // Ambient beds drop to this fraction of their normal level while other audio
+  // (currently: a scene video's own soundtrack) is playing over them.
+  const duckGain = settings.audioDucking && sceneAudioActive ? DUCK_GAIN : 1;
+  const duckGainRef = useRef(duckGain);
+
+  useEffect(() => {
+    duckGainRef.current = duckGain;
+  }, [duckGain]);
 
   const audioRef = useRef<Record<string, HTMLAudioElement>>({});
   const fadeIntervalRef = useRef<number | null>(null);
@@ -97,7 +113,7 @@ function App() {
       const audio = audioRef.current[sound.id];
       if (audio) {
         const per = live.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6;
-        audio.volume = Math.max(0, Math.min(1, live.masterVolume * per));
+        audio.volume = Math.max(0, Math.min(1, live.masterVolume * per * duckGainRef.current));
       }
     }
   };
@@ -115,7 +131,9 @@ function App() {
         0,
         Math.min(
           1,
-          live.masterVolume * (live.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6),
+          live.masterVolume *
+            (live.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6) *
+            duckGainRef.current,
         ),
       ),
     }));
@@ -149,6 +167,52 @@ function App() {
       }
     }, stepMs);
   };
+
+  // Stable identities so the memoized mixer cards don't all re-render on every
+  // slider tick.
+  const handleMasterVolume = useCallback(
+    (value: number) => setSettings((current) => ({ ...current, masterVolume: value })),
+    [setSettings],
+  );
+
+  const handleToggleSound = useCallback(
+    (soundId: string) =>
+      setSettings((current) => ({
+        ...current,
+        enabled: { ...current.enabled, [soundId]: !current.enabled[soundId] },
+      })),
+    [setSettings],
+  );
+
+  const handleSoundVolume = useCallback(
+    (soundId: string, volume: number) =>
+      setSettings((current) => ({
+        ...current,
+        perSoundVolume: { ...current.perSoundVolume, [soundId]: volume },
+      })),
+    [setSettings],
+  );
+
+  const handleToggleSoundFavorite = useCallback(
+    (soundId: string) =>
+      setSettings((current) => ({
+        ...current,
+        favorite: { ...current.favorite, [soundId]: !current.favorite[soundId] },
+      })),
+    [setSettings],
+  );
+
+  const handleToggleMultipleSounds = useCallback(
+    (soundIds: string[], enabled: boolean) =>
+      setSettings((current) => {
+        const nextEnabled = { ...current.enabled };
+        for (const id of soundIds) {
+          nextEnabled[id] = enabled;
+        }
+        return { ...current, enabled: nextEnabled };
+      }),
+    [setSettings],
+  );
 
   const updateTimerPreset = (presetId: string, patch: Partial<TimerPreset>) => {
     setTimerPresets((current) =>
@@ -206,7 +270,7 @@ function App() {
   }) => {
     const baseScene = activeScene ?? savedScenes[0];
     const nextScene: SavedScene = {
-      id: `scene-${Date.now()}`,
+      id: createId("scene"),
       title: payload.title,
       description: payload.description,
       duration: baseScene?.duration ?? 45,
@@ -244,7 +308,7 @@ function App() {
 
     const duplicate: SavedScene = {
       ...source,
-      id: `scene-${Date.now()}`,
+      id: createId("scene"),
       title: `${source.title} Copy`,
       favorite: false,
       isDefault: false,
@@ -280,6 +344,51 @@ function App() {
         scene.id === sceneId ? { ...scene, favorite: !scene.favorite, updatedAt: Date.now() } : scene,
       ),
     );
+  };
+
+  const deleteScene = (sceneId: string) => {
+    if (savedScenes.length <= 1) {
+      return false;
+    }
+
+    const remaining = savedScenes.filter((scene) => scene.id !== sceneId);
+    if (remaining.length === savedScenes.length) {
+      return false;
+    }
+
+    // Keep exactly one default scene alive even if the deleted one held the flag.
+    if (!remaining.some((scene) => scene.isDefault)) {
+      remaining[0] = { ...remaining[0], isDefault: true };
+    }
+
+    const fallbackScene = remaining.find((scene) => scene.isDefault) ?? remaining[0];
+
+    setSavedScenes(remaining);
+    setSettings((current) => ({
+      ...current,
+      selectedSceneId: current.selectedSceneId === sceneId ? fallbackScene.id : current.selectedSceneId,
+      lastAppliedSceneId:
+        current.lastAppliedSceneId === sceneId ? fallbackScene.id : current.lastAppliedSceneId,
+    }));
+
+    // Any preset pointing at the removed scene falls back too, so the timer
+    // never tries to apply a scene that no longer exists.
+    setTimerPresets((current) =>
+      current.map((preset) =>
+        preset.sceneId === sceneId || preset.cycles.some((cycle) => cycle.sceneId === sceneId)
+          ? {
+              ...preset,
+              sceneId: preset.sceneId === sceneId ? fallbackScene.id : preset.sceneId,
+              cycles: preset.cycles.map((cycle) =>
+                cycle.sceneId === sceneId ? { ...cycle, sceneId: fallbackScene.id } : cycle,
+              ),
+            }
+          : preset,
+      ),
+    );
+
+    setPlayingScene((current) => (current?.id === sceneId ? null : current));
+    return true;
   };
 
   const exportScene = (sceneId: string) => {
@@ -408,32 +517,33 @@ function App() {
     }
   };
 
-  const createTimerPreset = () => {
-    const title = window.prompt("Preset name", `Custom ${timerPresets.length + 1}`)?.trim();
-    if (!title) {
-      return null;
-    }
-
+  const createTimerPreset = (payload: {
+    title: string;
+    desc: string;
+    focusMinutes: number;
+    breakMinutes: number;
+    sceneId: string;
+    cycleCount: number;
+  }) => {
+    const sceneId = payload.sceneId || activeScene?.id || savedScenes[0]?.id || "scene-0";
     const nextPreset: TimerPreset = {
-      id: `preset-${Date.now()}`,
-      title,
-      desc: "Personal focus flow preset.",
-      focusMinutes: 40,
-      breakMinutes: 10,
-      sceneId: activeScene?.id ?? savedScenes[0]?.id ?? "scene-0",
+      id: createId("preset"),
+      title: payload.title,
+      desc: payload.desc,
+      focusMinutes: payload.focusMinutes,
+      breakMinutes: payload.breakMinutes,
+      sceneId,
       fadeOutAtEnd: false,
       breakReminders: false,
       autoStartNextSession: false,
       distractionFree: false,
-      cycles: [
-        {
-          id: `cycle-${Date.now()}`,
-          label: "Cycle 1",
-          focusMinutes: 40,
-          breakMinutes: 10,
-          sceneId: activeScene?.id ?? savedScenes[0]?.id ?? "scene-0",
-        },
-      ],
+      cycles: Array.from({ length: Math.max(1, payload.cycleCount) }, (_, index) => ({
+        id: createId("cycle"),
+        label: `Cycle ${index + 1}`,
+        focusMinutes: payload.focusMinutes,
+        breakMinutes: payload.breakMinutes,
+        sceneId,
+      })),
     };
 
     setTimerPresets((current) => [...current, nextPreset]);
@@ -446,11 +556,52 @@ function App() {
       completedCycles: 0,
       notification: null,
     });
+    setCreatingPreset(false);
     return nextPreset.id;
+  };
+
+  const deleteTimerPreset = (presetId: string) => {
+    if (timerPresets.length <= 1) {
+      return false;
+    }
+
+    const remaining = timerPresets.filter((preset) => preset.id !== presetId);
+    if (remaining.length === timerPresets.length) {
+      return false;
+    }
+
+    setTimerPresets(remaining);
+    setTimerSession((current) => {
+      if (current.activePresetId !== presetId) {
+        return current;
+      }
+      const fallback = remaining[0];
+      return {
+        activePresetId: fallback.id,
+        phase: "focus",
+        isRunning: false,
+        remainingSeconds: getTimerPresetCycle(fallback, 0).focusMinutes * 60,
+        endsAt: null,
+        completedCycles: 0,
+        notification: null,
+      };
+    });
+    return true;
   };
 
   useEffect(() => {
     if (!ready) return;
+    // Honour "Auto-play last scene": start the stored mix immediately, otherwise
+    // come up paused so launching the app never makes noise unexpectedly.
+    const live = settingsRef.current;
+    if (live.autoPlayOnLaunch) {
+      const lastSceneId = live.lastAppliedSceneId ?? live.selectedSceneId;
+      if (lastSceneId) {
+        applyScene(lastSceneId);
+      }
+      setIsPlaying(true);
+      return;
+    }
     setIsPlaying(false);
   }, [ready]);
 
@@ -485,14 +636,14 @@ function App() {
         audioRef.current[sound.id] = audio;
       }
       const per = settings.perSoundVolume[sound.id] ?? sound.defaultVolume ?? 0.6;
-      audio.volume = Math.max(0, Math.min(1, settings.masterVolume * per));
+      audio.volume = Math.max(0, Math.min(1, settings.masterVolume * per * duckGain));
       if (shouldPlay) {
         void audio.play().catch(() => {});
       } else {
         audio.pause();
       }
     }
-  }, [isPlaying, settings.enabled, settings.masterVolume, settings.perSoundVolume]);
+  }, [duckGain, isPlaying, settings.enabled, settings.masterVolume, settings.perSoundVolume]);
 
   useEffect(() => {
     clearSleepTimeout();
@@ -748,34 +899,11 @@ function App() {
                   clearFadeInterval();
                   setIsPlaying((current) => !current);
                 }}
-                onMasterVolume={(value) => setSettings((current) => ({ ...current, masterVolume: value }))}
-                onToggleSound={(soundId) =>
-                  setSettings((current) => ({
-                    ...current,
-                    enabled: { ...current.enabled, [soundId]: !current.enabled[soundId] },
-                  }))
-                }
-                onSoundVolume={(soundId, volume) =>
-                  setSettings((current) => ({
-                    ...current,
-                    perSoundVolume: { ...current.perSoundVolume, [soundId]: volume },
-                  }))
-                }
-                onToggleFavorite={(soundId) =>
-                  setSettings((current) => ({
-                    ...current,
-                    favorite: { ...current.favorite, [soundId]: !current.favorite[soundId] },
-                  }))
-                }
-                onToggleMultipleSounds={(soundIds, enabled) =>
-                  setSettings((current) => {
-                    const nextEnabled = { ...current.enabled };
-                    for (const id of soundIds) {
-                      nextEnabled[id] = enabled;
-                    }
-                    return { ...current, enabled: nextEnabled };
-                  })
-                }
+                onMasterVolume={handleMasterVolume}
+                onToggleSound={handleToggleSound}
+                onSoundVolume={handleSoundVolume}
+                onToggleFavorite={handleToggleSoundFavorite}
+                onToggleMultipleSounds={handleToggleMultipleSounds}
                 onApplyScene={(sceneId) => applyScene(sceneId)}
                 onSaveScene={(sceneId) => syncSceneFromCurrentMix(sceneId)}
                 onCreateScene={() => setCreatingScene(true)}
@@ -797,6 +925,7 @@ function App() {
                 onToggleFavorite={toggleFavoriteScene}
                 onDuplicateScene={duplicateScene}
                 onExportScene={exportScene}
+                onDeleteScene={deleteScene}
                 onSetDefaultScene={setDefaultScene}
                 onCreateScene={() => setCreatingScene(true)}
               />
@@ -816,7 +945,7 @@ function App() {
                 onStartPause={startPauseTimer}
                 onReset={() => resetTimerSession(timerSession.phase)}
                 onSelectPreset={selectTimerPreset}
-                onCreatePreset={createTimerPreset}
+                onCreatePreset={() => setCreatingPreset(true)}
                 onAdjustFocusMinutes={(delta) => {
                   if (!activePreset) return;
                   const nextFocusMinutes = Math.max(10, Math.min(120, activePreset.focusMinutes + delta));
@@ -845,7 +974,7 @@ function App() {
                     endsAt: null,
                   }));
                 }}
-                onMasterVolume={(value) => setSettings((current) => ({ ...current, masterVolume: value }))}
+                onMasterVolume={handleMasterVolume}
                 onOpenMixer={() => navigateTo("/")}
                 onManagePresets={() => navigateTo("/timer/presets")}
                 onDismissNotification={() =>
@@ -863,7 +992,8 @@ function App() {
                 activePresetId={timerSession.activePresetId}
                 onSelectPreset={setActiveTimerPreset}
                 onUpdatePreset={updateTimerPreset}
-                onCreatePreset={createTimerPreset}
+                onCreatePreset={() => setCreatingPreset(true)}
+                onDeletePreset={deleteTimerPreset}
                 onOpenTimer={() => navigateTo("/timer")}
               />
             }
@@ -891,7 +1021,14 @@ function App() {
       </div>
 
       {playingScene && (
-        <ScenePlayer scene={playingScene} onClose={() => setPlayingScene(null)} />
+        <ScenePlayer
+          scene={playingScene}
+          onClose={() => {
+            setSceneAudioActive(false);
+            setPlayingScene(null);
+          }}
+          onAudibleChange={setSceneAudioActive}
+        />
       )}
 
       {creatingScene && (
@@ -899,6 +1036,15 @@ function App() {
           defaultVideo={activeScene?.video}
           onCancel={() => setCreatingScene(false)}
           onCreate={createSceneFromCurrentMix}
+        />
+      )}
+
+      {creatingPreset && (
+        <CreatePresetModal
+          scenes={savedScenes}
+          defaultSceneId={activeScene?.id}
+          onCancel={() => setCreatingPreset(false)}
+          onCreate={createTimerPreset}
         />
       )}
     </div>

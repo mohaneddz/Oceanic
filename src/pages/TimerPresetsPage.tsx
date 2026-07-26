@@ -20,7 +20,8 @@ type Props = {
   activePresetId: string | null;
   onSelectPreset: (presetId: string) => void;
   onUpdatePreset: (presetId: string, patch: Partial<TimerPreset>) => void;
-  onCreatePreset: () => string | null;
+  onCreatePreset: () => void;
+  onDeletePreset: (presetId: string) => boolean;
   onOpenTimer: () => void;
 };
 
@@ -100,12 +101,13 @@ export function TimerPresetsPage({
   onSelectPreset,
   onUpdatePreset,
   onCreatePreset,
+  onDeletePreset,
   onOpenTimer,
 }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [editorPresetId, setEditorPresetId] = useState<string | null>(null);
   const [draft, setDraft] = useState<TimerPreset | null>(null);
-  const [pendingOpenPresetId, setPendingOpenPresetId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const activePreset = useMemo(
     () => presets.find((preset) => preset.id === activePresetId) ?? presets[0] ?? null,
@@ -123,21 +125,6 @@ export function TimerPresetsPage({
     }
     setDraft(clonePreset(editorPreset));
   }, [editorPreset]);
-
-  useEffect(() => {
-    if (!pendingOpenPresetId) {
-      return;
-    }
-
-    const preset = presets.find((entry) => entry.id === pendingOpenPresetId);
-    if (!preset) {
-      return;
-    }
-
-    setEditorPresetId(preset.id);
-    setDraft(clonePreset(preset));
-    setPendingOpenPresetId(null);
-  }, [pendingOpenPresetId, presets]);
 
   useEffect(() => {
     if (!editorPresetId) {
@@ -310,16 +297,7 @@ export function TimerPresetsPage({
           </div>
 
           <div className="border-t border-[#6a94c526] p-3">
-            <button
-              type="button"
-              className={`${buttonClass} w-full`}
-              onClick={() => {
-                const createdId = onCreatePreset();
-                if (createdId) {
-                  setPendingOpenPresetId(createdId);
-                }
-              }}
-            >
+            <button type="button" className={`${buttonClass} w-full`} onClick={onCreatePreset}>
               <Plus size={16} /> New Preset
             </button>
             <button
@@ -346,16 +324,7 @@ export function TimerPresetsPage({
               <button type="button" className={buttonClass} onClick={onOpenTimer}>
                 <ChevronLeft size={16} /> Back to Timer
               </button>
-              <button
-                type="button"
-                className={buttonClass}
-                onClick={() => {
-                  const createdId = onCreatePreset();
-                  if (createdId) {
-                    setPendingOpenPresetId(createdId);
-                  }
-                }}
-              >
+              <button type="button" className={buttonClass} onClick={onCreatePreset}>
                 <Plus size={16} /> Create Preset
               </button>
             </div>
@@ -404,10 +373,54 @@ export function TimerPresetsPage({
                     >
                       Edit
                     </button>
+                    <button
+                      type="button"
+                      disabled={presets.length <= 1}
+                      title={presets.length <= 1 ? "Keep at least one preset" : `Delete ${preset.title}`}
+                      aria-label={`Delete ${preset.title}`}
+                      className="inline-flex items-center justify-center rounded-xl border border-[#8c3a3a66] bg-[#3a141966] px-2.5 py-2 text-[#f0c9c9] transition-colors hover:border-[#c25a5a99] hover:bg-[#4d1b1b8c] disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setPendingDeleteId(preset.id);
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
                   </div>
                 </div>
 
                 <PresetSummary preset={preset} scenes={scenes} />
+
+                {pendingDeleteId === preset.id ? (
+                  <div className="mt-4 rounded-xl border border-[#e2606033] bg-[#3a141499] p-3">
+                    <p className="text-sm text-[#f4dcdc]">
+                      Delete &ldquo;{preset.title}&rdquo;? This cannot be undone.
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        className="flex-1 rounded-lg border border-[#e2606066] bg-[#8c2f2fcc] px-3 py-2 text-sm text-white transition-colors hover:bg-[#a83838cc]"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeletePreset(preset.id);
+                          setPendingDeleteId(null);
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        className={`${buttonClass} flex-1`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setPendingDeleteId(null);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="mt-4 flex items-center justify-between text-sm text-[#9fb4ca]">
                   <span className="inline-flex items-center gap-1">
