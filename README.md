@@ -135,7 +135,7 @@ pnpm dev
 Open:
 
 ```text
-http://localhost:1420
+http://localhost:10000
 ```
 
 ### 4. Run desktop app (Tauri)
@@ -169,7 +169,10 @@ pnpm tauri build # Build desktop installers/bundles
 
 ## Media Notes
 
-- Scene thumbnails now use `.avif`.
+- Scene thumbnails are `.jpg` under `public/images/scenes/video-thumbs`. AVIF copies exist
+  alongside them but are not used: the WebView2 runtime the desktop build ships against did
+  not render them as `<img>` sources.
+- Curated default scenes use their own art in `public/images/scenes` (e.g. `oceanic-blanket.jpg`).
 - Scene videos are encoded to `.mp4` (`libx264`, `CRF 28`) for app usage.
 - Source media lives under `public/images/scenes` and `public/videos`.
 
