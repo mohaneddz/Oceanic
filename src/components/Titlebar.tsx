@@ -108,7 +108,7 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
   return (
     <header
       data-tauri-drag-region
-      className="h-[62px] border-b border-[#6c9dd633] bg-gradient-to-b from-[#08192cf5] to-[#051322f2]"
+      className="h-[62px] border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--titlebar-from)] to-[var(--titlebar-to)]"
       onDoubleClick={toggleMaximize}
     >
       <div
@@ -125,8 +125,8 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
                 className={({ isActive }) =>
                   `rounded-[10px] border px-4 py-3 text-[17px] font-semibold leading-none transition ${
                     isActive
-                      ? "border-[#6091c766] bg-gradient-to-b from-[#1c4571db] to-[#133151e0] text-white"
-                      : "border-transparent text-[#e2ecf7d6] hover:border-[#7099ca57] hover:bg-[#122f508c] hover:text-white"
+                      ? "border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent-deep)] to-[var(--accent-deep)] text-white"
+                      : "border-transparent text-[var(--text-soft)] hover:border-[var(--border)] hover:bg-[var(--control-hover)] hover:text-white"
                   }`
                 }
               >
@@ -137,16 +137,16 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
         </div>
 
         <div className="flex items-center gap-3" data-tauri-drag-region="false">
-          <div className="flex items-center gap-2 text-[16px] text-[#d6e1f0]">
-            <span className={`h-2 w-2 rounded-full shadow-[0_0_0_3px_rgba(45,132,255,0.2)] ${playbackText === "Paused" ? "bg-[#8aa2bc]" : "bg-[#2d84ff]"}`} />
+          <div className="flex items-center gap-2 text-[16px] text-[var(--text-soft)]">
+            <span className={`h-2 w-2 rounded-full shadow-[0_0_0_3px_rgba(45,132,255,0.2)] ${playbackText === "Paused" ? "bg-[var(--text-dim)]" : "bg-[var(--accent)]"}`} />
             <span>{playbackText === "Paused" ? "Paused" : "Currently Playing"}</span>
             <AudioLines size={16} />
           </div>
-          <span className="h-5 w-px bg-[#7099ca40]" />
+          <span className="h-5 w-px bg-[var(--border)]" />
           <div className="flex items-center gap-[2px]">
             <button
               type="button"
-              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[var(--text-soft)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
               aria-label="Minimize"
               onClick={minimize}
             >
@@ -154,7 +154,7 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
             </button>
             <button
               type="button"
-              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[var(--text-soft)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
               aria-label={isMaximized ? "Restore" : "Maximize"}
               onClick={toggleMaximize}
             >
@@ -169,7 +169,7 @@ export function Titlebar({ minimizeToTray, playbackText }: TitlebarProps) {
             </button>
             <button
               type="button"
-              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[#d9e7fa] hover:border-[#6392ca61] hover:bg-[#14355899]"
+              className="inline-flex h-7 w-[34px] items-center justify-center rounded-lg border border-transparent bg-transparent text-[var(--text-soft)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
               aria-label="Close"
               onClick={close}
             >
