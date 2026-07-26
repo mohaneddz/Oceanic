@@ -220,7 +220,7 @@ export function SettingsPage({
                 <div>
                   <p className="text-base">Audio ducking</p>
                   <p className="text-sm text-[#91a7bf]">
-                    Reduce ambient intensity when other app audio becomes active.
+                    Lower the ambient mix while a scene video is playing with its own sound.
                   </p>
                 </div>
                 <Toggle
