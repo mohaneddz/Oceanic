@@ -39,7 +39,7 @@ const toClock = (remainingSeconds: number) => {
 };
 
 const panelClass =
-  "rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
+  "rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
 
 export function TimerPage({
   isPlaying,
@@ -95,13 +95,13 @@ export function TimerPage({
     : "h-72 w-72 xl:h-[21rem] xl:w-[21rem]";
 
   return (
-    <main className="h-full w-full overflow-hidden p-5 text-[#f0f5fc]">
+    <main className="h-full w-full overflow-hidden p-5 text-[var(--text)]">
       <div className={`grid h-full gap-3 ${compactMode || presetSidebarCollapsed ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_22rem]"} max-[1200px]:grid-cols-1`}>
         <section className={`${panelClass} flex min-h-0 flex-col overflow-hidden ${compactMode ? "col-span-full" : ""}`}>
-          <div className="border-b border-[#6695ca33] px-5 py-4">
+          <div className="border-b border-[var(--border-subtle)] px-5 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">
+                <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">
                   {session.phase === "focus" ? "FOCUS SESSION" : "BREAK SESSION"}
                 </p>
                 <h1 className="truncate text-4xl font-semibold leading-none xl:text-5xl">
@@ -113,7 +113,7 @@ export function TimerPage({
                 {!compactMode ? (
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                     onClick={() => setPresetSidebarCollapsed((prev) => !prev)}
                     aria-label={presetSidebarCollapsed ? "Show preset sidebar" : "Hide preset sidebar"}
                   >
@@ -123,14 +123,14 @@ export function TimerPage({
                 ) : null}
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                   onClick={onManagePresets}
                 >
                   <Layers3Icon /> Manage Presets
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                   onClick={onOpenMixer}
                 >
                   Open Mixer
@@ -139,12 +139,12 @@ export function TimerPage({
             </div>
 
             {session.notification ? (
-              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2">
-                <div className="flex items-center gap-2 text-sm text-[#dbe9f8]">
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-[var(--text-soft)]">
                   <Bell size={14} />
                   <span>{session.notification}</span>
                 </div>
-                <button type="button" className="text-sm text-[#86beff]" onClick={onDismissNotification}>
+                <button type="button" className="text-sm text-[var(--accent-text)]" onClick={onDismissNotification}>
                   Dismiss
                 </button>
               </div>
@@ -154,11 +154,11 @@ export function TimerPage({
           <div className={`flex min-h-0 flex-1 flex-col ${compactMode ? "items-center justify-center px-5 py-6 text-center" : "px-5 py-6"}`}>
             <div className={`flex w-full flex-1 flex-col items-center justify-center ${compactMode ? "max-w-4xl" : "max-w-5xl"} mx-auto`}>
               <div
-                className={`${timerSizeClass} flex flex-col items-center justify-center rounded-full border-2 border-[#3a85e3cc] bg-[radial-gradient(circle_at_30%_20%,rgba(36,109,202,0.25),rgba(11,31,53,0.35))] text-center shadow-[inset_0_0_0_10px_rgba(10,31,52,0.7),0_0_26px_rgba(25,108,209,0.24)]`}
+                className={`${timerSizeClass} flex flex-col items-center justify-center rounded-full border-2 border-[var(--accent-border)] [background:var(--dial-bg)] text-center [box-shadow:var(--dial-shadow)]`}
               >
                 <strong className="text-6xl leading-none xl:text-7xl">{toClock(session.remainingSeconds)}</strong>
-                <span className="mt-3 text-lg text-[#91a7bf]">{phaseLabel}</span>
-                <span className="mt-1 text-sm text-[#7e9bbb]">
+                <span className="mt-3 text-lg text-[var(--text-muted)]">{phaseLabel}</span>
+                <span className="mt-1 text-sm text-[var(--text-dim)]">
                   Cycle {session.completedCycles + 1}
                   {activePreset ? ` of ${activePreset.cycles.length}` : ""}
                 </span>
@@ -167,7 +167,7 @@ export function TimerPage({
               <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#6a94c55c] bg-[#0e2742a3] text-[#adc1d8]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--control)] text-[var(--text-muted)]"
                   aria-label="Reduce focus duration"
                   onClick={() => onAdjustFocusMinutes(-5)}
                 >
@@ -175,14 +175,14 @@ export function TimerPage({
                 </button>
                 <button
                   type="button"
-                  className="inline-flex h-[66px] w-[66px] items-center justify-center rounded-full border border-[#4787d29e] bg-gradient-to-b from-[#2478e0a3] to-[#0f3152f5] text-[#f5f9ff]"
+                  className="inline-flex h-[66px] w-[66px] items-center justify-center rounded-full border border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-deep)] text-[var(--text)]"
                   onClick={onStartPause}
                 >
                   {session.isRunning ? <Pause size={24} /> : <Play size={24} />}
                 </button>
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#6a94c55c] bg-[#0e2742a3] text-[#adc1d8]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--control)] text-[var(--text-muted)]"
                   aria-label="Increase focus duration"
                   onClick={() => onAdjustFocusMinutes(5)}
                 >
@@ -190,7 +190,7 @@ export function TimerPage({
                 </button>
                 <button
                   type="button"
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-[#6a94c55c] bg-[#0e2742a3] px-4 text-[#dce8f6]"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--control)] px-4 text-[var(--text-soft)]"
                   onClick={onReset}
                 >
                   <RotateCcw size={15} /> Reset
@@ -198,37 +198,37 @@ export function TimerPage({
               </div>
 
               <div className={`mt-6 grid w-full gap-3 ${compactMode ? "max-w-4xl" : "xl:grid-cols-2"}`}>
-                <div className="rounded-2xl border border-[#6a94c538] bg-[#0c233c8c] p-4">
+                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4">
                   <div className="flex flex-col items-center gap-2 text-center">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#78a5db3d] bg-[#133150b3] text-[#c4d6eb]">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--icon-chip)] text-[var(--text-soft)]">
                       <Headphones size={14} />
                     </span>
                     <div>
                       <h3 className="text-lg font-semibold">Current Atmosphere</h3>
-                      <p className="text-sm text-[#91a7bf]">{scene?.title ?? "No ambient scene"}</p>
+                      <p className="text-sm text-[var(--text-muted)]">{scene?.title ?? "No ambient scene"}</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-center text-sm text-[#9db2c9]">
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-center text-sm text-[var(--text-muted)]">
                     <span>{isPlaying ? "Ambient playing" : "Ambient paused"}</span>
-                    <span className="h-3 w-px bg-[#6a94c552]" />
+                    <span className="h-3 w-px bg-[var(--border)]" />
                     <span>{activeCycle ? `${activeCycle.focusMinutes} / ${activeCycle.breakMinutes} min cycle` : "Default cycle"}</span>
-                    <span className="h-3 w-px bg-[#6a94c552]" />
+                    <span className="h-3 w-px bg-[var(--border)]" />
                     <span>{nextUp}</span>
                   </div>
                 </div>
 
                 {!compactMode ? (
-                  <div className="rounded-2xl border border-[#6a94c538] bg-[#0c233c8c] p-4">
+                  <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-semibold">Master Volume</h3>
-                        <p className="text-sm text-[#91a7bf]">Control the overall output.</p>
+                        <p className="text-sm text-[var(--text-muted)]">Control the overall output.</p>
                       </div>
-                      <span className="text-lg font-semibold text-[#dbe9f8]">{Math.round(masterVolume * 100)}%</span>
+                      <span className="text-lg font-semibold text-[var(--text-soft)]">{Math.round(masterVolume * 100)}%</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Volume2 size={16} className="text-[#8ea6bf]" />
+                      <Volume2 size={16} className="text-[var(--text-dim)]" />
                       <input
                         type="range"
                         value={masterVolume}
@@ -236,7 +236,7 @@ export function TimerPage({
                         min={0}
                         max={1}
                         step={0.01}
-                        className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#2d7de4] accent-[#2f89ff]"
+                        className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[var(--accent-track)] accent-[var(--accent)]"
                       />
                     </div>
                   </div>
@@ -248,11 +248,11 @@ export function TimerPage({
 
         {!compactMode && !presetSidebarCollapsed ? (
           <aside className={`${panelClass} flex min-h-0 flex-col overflow-hidden`}>
-            <div className="flex items-center justify-between gap-3 border-b border-[#6a94c526] px-3 py-3">
-              <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">PRESET SIDEBAR</p>
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-3 py-3">
+              <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">PRESET SIDEBAR</p>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                 onClick={() => setPresetSidebarCollapsed(true)}
               >
                 <PanelRightClose size={16} /> Collapse
@@ -268,25 +268,25 @@ export function TimerPage({
                     onClick={() => onSelectPreset(preset.id)}
                     className={`w-full rounded-2xl border p-3 text-left transition-colors ${
                       activePreset?.id === preset.id
-                        ? "border-[#5391e0c2] bg-[#2d82ea33]"
-                        : "border-[#6a94c538] bg-[#0d243d99] hover:border-[#6a94c552] hover:bg-[#122f4fba]"
+                        ? "border-[var(--accent-border)] bg-[var(--accent-soft)]"
+                        : "border-[var(--border-subtle)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h4 className="text-lg font-semibold">{preset.title}</h4>
-                        <p className="mt-1 text-sm text-[#91a7bf]">{preset.desc}</p>
+                        <p className="mt-1 text-sm text-[var(--text-muted)]">{preset.desc}</p>
                       </div>
                       <Layers3Icon />
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#9fb4ca]">
-                      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-1">
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--text-muted)]">
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-1">
                         {preset.cycles.length} cycles
                       </span>
-                      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-1">
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-1">
                         {preset.focusMinutes}/{preset.breakMinutes}
                       </span>
-                      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-1">
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-1">
                         {preset.distractionFree ? "Focused" : "Standard"}
                       </span>
                     </div>
@@ -296,14 +296,14 @@ export function TimerPage({
 
               <button
                 type="button"
-                className="mt-3 w-full rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                className="mt-3 w-full rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                 onClick={onManagePresets}
               >
                 Manage Presets
               </button>
               <button
                 type="button"
-                className="mt-2 w-full rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
                 onClick={() => onCreatePreset()}
               >
                 + New Preset
@@ -317,5 +317,5 @@ export function TimerPage({
 }
 
 function Layers3Icon() {
-  return <Layers3 size={16} className="shrink-0 text-[#9fb4ca]" />;
+  return <Layers3 size={16} className="shrink-0 text-[var(--text-muted)]" />;
 }

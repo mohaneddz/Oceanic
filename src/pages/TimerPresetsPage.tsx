@@ -26,10 +26,10 @@ type Props = {
 };
 
 const panelClass =
-  "rounded-2xl border border-[#6a94c533] bg-gradient-to-br from-[#0c233cdb] to-[#08192bed] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
+  "rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)] shadow-[0_1.375rem_3.75rem_rgba(0,0,0,0.34)]";
 
 const buttonClass =
-  "inline-flex items-center justify-center gap-2 rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]";
+  "inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]";
 
 function Toggle({
   checked,
@@ -44,13 +44,13 @@ function Toggle({
       onClick={onToggle}
       className={`relative h-5 w-10 rounded-full border transition ${
         checked
-          ? "border-[#5d99e9d9] bg-gradient-to-b from-[#2a87ff] to-[#246fd6]"
-          : "border-[#6c9dd647] bg-[#7b96b45c]"
+          ? "border-[var(--accent-border)] bg-gradient-to-b from-[var(--accent)] to-[var(--accent-strong)]"
+          : "border-[var(--border)] bg-[var(--toggle-off)]"
       }`}
       aria-pressed={checked}
     >
       <span
-        className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-[#e8f1ff] transition-transform ${
+        className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-[var(--toggle-knob)] transition-transform ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
@@ -80,14 +80,14 @@ function PresetSummary({ preset, scenes }: { preset: TimerPreset; scenes: SavedS
   const scene = scenes.find((entry) => entry.id === (firstCycle?.sceneId ?? preset.sceneId)) ?? null;
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#9fb4ca]">
-      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1">
+    <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--text-muted)]">
+      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1">
         {preset.cycles.length} cycles
       </span>
-      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1">
+      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1">
         {preset.focusMinutes} / {preset.breakMinutes} min
       </span>
-      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-3 py-1">
+      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-3 py-1">
         {scene?.title ?? "No scene selected"}
       </span>
     </div>
@@ -206,11 +206,11 @@ export function TimerPresetsPage({
   };
 
   return (
-    <main className="h-full w-full overflow-hidden p-5 text-[#f0f5fc]">
+    <main className="h-full w-full overflow-hidden p-5 text-[var(--text)]">
       <div className={`grid h-full gap-3 ${presetRailClass} max-[1180px]:grid-cols-1`}>
         <aside className={`${panelClass} flex min-h-0 flex-col overflow-hidden`}>
-          <div className="flex items-center justify-between gap-2 border-b border-[#6a94c526] px-3 py-3">
-            {!sidebarCollapsed ? <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">PRESETS</p> : <span />}
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
+            {!sidebarCollapsed ? <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">PRESETS</p> : <span />}
             <button
               type="button"
               className={buttonClass}
@@ -232,8 +232,8 @@ export function TimerPresetsPage({
                     onClick={() => onSelectPreset(preset.id)}
                     className={`inline-flex h-12 w-12 items-center justify-center rounded-xl border text-sm font-semibold transition-colors ${
                       preset.id === activePreset?.id
-                        ? "border-[#5f9beb] bg-[#2d82ea33] text-white"
-                        : "border-[#6a94c538] bg-[#0d243d99] text-[#dbe9f8] hover:border-[#6a94c552] hover:bg-[#122f4fba]"
+                        ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-white"
+                        : "border-[var(--border-subtle)] bg-[var(--surface-muted)] text-[var(--text-soft)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
                     }`}
                     title={preset.title}
                     aria-label={`Select ${preset.title}`}
@@ -258,14 +258,14 @@ export function TimerPresetsPage({
                     }}
                     className={`rounded-2xl border p-3 text-left transition-colors ${
                       preset.id === activePreset?.id
-                        ? "border-[#5391e0c2] bg-[#2d82ea33]"
-                        : "border-[#6a94c538] bg-[#0d243d99] hover:border-[#6a94c552] hover:bg-[#122f4fba]"
+                        ? "border-[var(--accent-border)] bg-[var(--accent-soft)]"
+                        : "border-[var(--border-subtle)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-semibold">{preset.title}</h3>
-                        <p className="mt-1 text-sm text-[#91a7bf]">{preset.desc}</p>
+                        <p className="mt-1 text-sm text-[var(--text-muted)]">{preset.desc}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -279,14 +279,14 @@ export function TimerPresetsPage({
                         >
                           Edit
                         </button>
-                        <Layers3 size={16} className="mt-1 shrink-0 text-[#9fb4ca]" />
+                        <Layers3 size={16} className="mt-1 shrink-0 text-[var(--text-muted)]" />
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-[#9fb4ca]">
-                      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-1">
+                    <div className="mt-3 flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-1">
                         {preset.cycles.length} cycles
                       </span>
-                      <span className="rounded-full border border-[#6c9dd63d] bg-[#102a4875] px-2 py-1">
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--pill)] px-2 py-1">
                         {preset.focusMinutes}/{preset.breakMinutes}
                       </span>
                     </div>
@@ -296,13 +296,13 @@ export function TimerPresetsPage({
             )}
           </div>
 
-          <div className="border-t border-[#6a94c526] p-3">
+          <div className="border-t border-[var(--border-subtle)] p-3">
             <button type="button" className={`${buttonClass} w-full`} onClick={onCreatePreset}>
               <Plus size={16} /> New Preset
             </button>
             <button
               type="button"
-              className="mt-2 w-full rounded-xl border border-[#6a94c552] bg-[#102b488f] px-3 py-2 text-sm text-[#dbe9f8] transition-colors hover:border-[#6a94c599] hover:bg-[#19406bc2]"
+              className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--control)] px-3 py-2 text-sm text-[var(--text-soft)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--control-hover)]"
               onClick={onOpenTimer}
             >
               Back to Timer
@@ -314,7 +314,7 @@ export function TimerPresetsPage({
           <header className="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-5xl font-semibold leading-none">Preset Manager</h1>
-              <p className="mt-2 max-w-3xl text-base text-[#91a7bf]">
+              <p className="mt-2 max-w-3xl text-base text-[var(--text-muted)]">
                 Click a preset card to select it for the timer. Use Edit to change timings, scenes,
                 and the cycle schedule.
               </p>
@@ -345,21 +345,21 @@ export function TimerPresetsPage({
                 }}
                 className={`rounded-2xl border p-4 text-left transition-colors ${
                   preset.id === activePreset?.id
-                    ? "border-[#5695e4c2] bg-[#14385ebd] shadow-[0_0.625rem_1.375rem_rgba(4,16,28,0.34)]"
-                    : "border-[#6a94c538] bg-[#0d243d99] hover:border-[#6a94c552] hover:bg-[#122f4fba]"
+                    ? "border-[var(--accent-border)] bg-[var(--accent-deep)] shadow-[0_0.625rem_1.375rem_rgba(4,16,28,0.34)]"
+                    : "border-[var(--border-subtle)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--control-hover)]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Timer size={16} className="text-[#9fb4ca]" />
+                      <Timer size={16} className="text-[var(--text-muted)]" />
                       <h3 className="text-2xl font-semibold">{preset.title}</h3>
                     </div>
-                    <p className="mt-2 text-sm text-[#91a7bf]">{preset.desc}</p>
+                    <p className="mt-2 text-sm text-[var(--text-muted)]">{preset.desc}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {preset.id === activePreset?.id ? (
-                      <span className="rounded-full border border-[#508bd999] bg-[#2c80e238] px-2.5 py-0.5 text-[0.7rem] uppercase tracking-[0.08em] text-[#84b8ff]">
+                      <span className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2.5 py-0.5 text-[0.7rem] uppercase tracking-[0.08em] text-[var(--accent-text)]">
                         Selected
                       </span>
                     ) : null}
@@ -378,7 +378,7 @@ export function TimerPresetsPage({
                       disabled={presets.length <= 1}
                       title={presets.length <= 1 ? "Keep at least one preset" : `Delete ${preset.title}`}
                       aria-label={`Delete ${preset.title}`}
-                      className="inline-flex items-center justify-center rounded-xl border border-[#8c3a3a66] bg-[#3a141966] px-2.5 py-2 text-[#f0c9c9] transition-colors hover:border-[#c25a5a99] hover:bg-[#4d1b1b8c] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex items-center justify-center rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-2 text-[var(--danger-text)] transition-colors hover:border-[var(--danger-border-strong)] hover:bg-[var(--danger-bg-hover)] disabled:cursor-not-allowed disabled:opacity-40"
                       onClick={(event) => {
                         event.stopPropagation();
                         setPendingDeleteId(preset.id);
@@ -392,14 +392,14 @@ export function TimerPresetsPage({
                 <PresetSummary preset={preset} scenes={scenes} />
 
                 {pendingDeleteId === preset.id ? (
-                  <div className="mt-4 rounded-xl border border-[#e2606033] bg-[#3a141499] p-3">
-                    <p className="text-sm text-[#f4dcdc]">
+                  <div className="mt-4 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-3">
+                    <p className="text-sm text-[var(--danger-text)]">
                       Delete &ldquo;{preset.title}&rdquo;? This cannot be undone.
                     </p>
                     <div className="mt-3 flex gap-2">
                       <button
                         type="button"
-                        className="flex-1 rounded-lg border border-[#e2606066] bg-[#8c2f2fcc] px-3 py-2 text-sm text-white transition-colors hover:bg-[#a83838cc]"
+                        className="flex-1 rounded-lg border border-[var(--danger-border)] bg-[var(--danger-solid)] px-3 py-2 text-sm text-white transition-colors hover:bg-[var(--danger-solid-hover)]"
                         onClick={(event) => {
                           event.stopPropagation();
                           onDeletePreset(preset.id);
@@ -422,7 +422,7 @@ export function TimerPresetsPage({
                   </div>
                 ) : null}
 
-                <div className="mt-4 flex items-center justify-between text-sm text-[#9fb4ca]">
+                <div className="mt-4 flex items-center justify-between text-sm text-[var(--text-muted)]">
                   <span className="inline-flex items-center gap-1">
                     <Clock3 size={14} /> {preset.focusMinutes}m focus
                   </span>
@@ -437,11 +437,11 @@ export function TimerPresetsPage({
       </div>
 
       {draft ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020b14cc] px-4 py-6 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] px-4 py-6 backdrop-blur-sm">
           <div className={`${panelClass} flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden`}>
-            <div className="flex items-center justify-between gap-3 border-b border-[#6a94c526] px-4 py-4">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-4">
               <div>
-                <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">EDIT PRESET</p>
+                <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">EDIT PRESET</p>
                 <h2 className="text-3xl font-semibold leading-none">{draft.title}</h2>
               </div>
               <button
@@ -460,22 +460,22 @@ export function TimerPresetsPage({
             <div className="grid min-h-0 flex-1 overflow-hidden xl:grid-cols-[minmax(0,1fr)_20rem]">
               <div className="min-h-0 overflow-y-auto overflow-x-hidden p-4">
                 <div className="grid gap-3 lg:grid-cols-2">
-                  <label className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-                    <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">TITLE</span>
+                  <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+                    <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">TITLE</span>
                     <input
                       type="text"
                       value={draft.title}
                       onChange={(event) => updateDraft({ title: event.currentTarget.value })}
-                      className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-lg text-[#f0f5fc] outline-none"
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-lg text-[var(--text)] outline-none"
                     />
                   </label>
 
-                  <label className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-                    <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">MAIN SCENE</span>
+                  <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+                    <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">MAIN SCENE</span>
                     <select
                       value={draft.sceneId}
                       onChange={(event) => updateDraft({ sceneId: event.currentTarget.value })}
-                      className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                     >
                       {scenes.map((scene) => (
                         <option key={scene.id} value={scene.id}>
@@ -485,18 +485,18 @@ export function TimerPresetsPage({
                     </select>
                   </label>
 
-                  <label className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3 lg:col-span-2">
-                    <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">DESCRIPTION</span>
+                  <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3 lg:col-span-2">
+                    <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">DESCRIPTION</span>
                     <textarea
                       value={draft.desc}
                       onChange={(event) => updateDraft({ desc: event.currentTarget.value })}
                       rows={3}
-                      className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-sm text-[#f0f5fc] outline-none"
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-sm text-[var(--text)] outline-none"
                     />
                   </label>
 
-                  <label className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-                    <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">FOCUS MINUTES</span>
+                  <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+                    <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">FOCUS MINUTES</span>
                     <input
                       type="number"
                       min={5}
@@ -505,12 +505,12 @@ export function TimerPresetsPage({
                       onChange={(event) =>
                         updateDraft({ focusMinutes: Number(event.currentTarget.value) || 0 })
                       }
-                      className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                     />
                   </label>
 
-                  <label className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
-                    <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">BREAK MINUTES</span>
+                  <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
+                    <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">BREAK MINUTES</span>
                     <input
                       type="number"
                       min={1}
@@ -519,16 +519,16 @@ export function TimerPresetsPage({
                       onChange={(event) =>
                         updateDraft({ breakMinutes: Number(event.currentTarget.value) || 0 })
                       }
-                      className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                      className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                     />
                   </label>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3">
+                <div className="mt-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h3 className="text-2xl font-semibold">Cycles</h3>
-                      <p className="text-sm text-[#91a7bf]">
+                      <p className="text-sm text-[var(--text-muted)]">
                         Each cycle can have its own duration and scene.
                       </p>
                     </div>
@@ -541,11 +541,11 @@ export function TimerPresetsPage({
                     {draft.cycles.map((cycle, index) => (
                       <div
                         key={cycle.id}
-                        className="rounded-2xl border border-[#6a94c538] bg-[#091b31e8] p-3"
+                        className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3"
                       >
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#78a5db3d] bg-[#133150b3] text-sm text-[#c4d6eb]">
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--icon-chip)] text-sm text-[var(--text-soft)]">
                               {index + 1}
                             </span>
                             <input
@@ -554,7 +554,7 @@ export function TimerPresetsPage({
                               onChange={(event) =>
                                 updateCycle(cycle.id, { label: event.currentTarget.value })
                               }
-                              className="min-w-[10rem] rounded-xl border border-[#6a94c538] bg-transparent px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                              className="min-w-[10rem] rounded-xl border border-[var(--border-subtle)] bg-transparent px-3 py-2 text-base text-[var(--text)] outline-none"
                             />
                           </div>
                           <button
@@ -568,8 +568,8 @@ export function TimerPresetsPage({
                         </div>
 
                         <div className="grid gap-3 lg:grid-cols-[repeat(3,minmax(0,1fr))]">
-                          <label className="rounded-2xl border border-[#6a94c538] bg-[#0b2037] p-3">
-                            <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">
+                          <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+                            <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">
                               FOCUS MINUTES
                             </span>
                             <input
@@ -582,12 +582,12 @@ export function TimerPresetsPage({
                                   focusMinutes: Number(event.currentTarget.value) || 0,
                                 })
                               }
-                              className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                              className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                             />
                           </label>
 
-                          <label className="rounded-2xl border border-[#6a94c538] bg-[#0b2037] p-3">
-                            <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">
+                          <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+                            <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">
                               BREAK MINUTES
                             </span>
                             <input
@@ -600,12 +600,12 @@ export function TimerPresetsPage({
                                   breakMinutes: Number(event.currentTarget.value) || 0,
                                 })
                               }
-                              className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                              className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                             />
                           </label>
 
-                          <label className="rounded-2xl border border-[#6a94c538] bg-[#0b2037] p-3">
-                            <span className="mb-2 block text-xs tracking-[0.12em] text-[#8ca4c0]">
+                          <label className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+                            <span className="mb-2 block text-xs tracking-[0.12em] text-[var(--text-dim)]">
                               CYCLE SCENE
                             </span>
                             <select
@@ -613,7 +613,7 @@ export function TimerPresetsPage({
                               onChange={(event) =>
                                 updateCycle(cycle.id, { sceneId: event.currentTarget.value })
                               }
-                              className="w-full rounded-xl border border-[#6a94c538] bg-[#091b31e8] px-3 py-2 text-base text-[#f0f5fc] outline-none"
+                              className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-2 text-base text-[var(--text)] outline-none"
                             >
                               {scenes.map((scene) => (
                                 <option key={scene.id} value={scene.id}>
@@ -631,17 +631,21 @@ export function TimerPresetsPage({
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                   {[
                     ["fadeOutAtEnd", "Fade out at end", "Sound will fade out gently"],
-                    ["breakReminders", "Break reminders", `Every ${draft.focusMinutes} min`],
+                    [
+                      "breakReminders",
+                      "Break reminders",
+                      "Desktop notification when a phase ends, even in the tray",
+                    ],
                     ["autoStartNextSession", "Auto-start next session", "Start the next phase automatically"],
                     ["distractionFree", "Distraction-free mode", "Reduce secondary UI on the timer page"],
                   ].map(([key, label, description]) => (
                     <div
                       key={String(key)}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-3"
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3"
                     >
                       <div>
                         <p className="text-base">{label}</p>
-                        <p className="text-sm text-[#91a7bf]">{description}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{description}</p>
                       </div>
                       <Toggle
                         checked={Boolean(draft[key as keyof TimerPreset])}
@@ -656,40 +660,40 @@ export function TimerPresetsPage({
                 </div>
               </div>
 
-              <aside className="min-h-0 overflow-y-auto border-t border-[#6a94c526] bg-[#08192bed] p-4 xl:border-l xl:border-t-0">
-                <div className="rounded-2xl border border-[#6a94c538] bg-[#0d243d99] p-4">
-                  <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">LIVE SUMMARY</p>
+              <aside className="min-h-0 overflow-y-auto border-t border-[var(--border-subtle)] bg-[var(--surface-2)] p-4 xl:border-l xl:border-t-0">
+                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4">
+                  <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">LIVE SUMMARY</p>
                   <h3 className="mt-2 text-3xl font-semibold">{draft.title}</h3>
-                  <p className="mt-2 text-sm text-[#91a7bf]">{draft.desc}</p>
-                  <div className="mt-4 grid gap-2 text-sm text-[#dbe9f8]">
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">{draft.desc}</p>
+                  <div className="mt-4 grid gap-2 text-sm text-[var(--text-soft)]">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#91a7bf]">Cycles</span>
+                      <span className="text-[var(--text-muted)]">Cycles</span>
                       <span>{draft.cycles.length}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#91a7bf]">Base focus</span>
+                      <span className="text-[var(--text-muted)]">Base focus</span>
                       <span>{draft.focusMinutes} min</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#91a7bf]">Base break</span>
+                      <span className="text-[var(--text-muted)]">Base break</span>
                       <span>{draft.breakMinutes} min</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#91a7bf]">Session mode</span>
+                      <span className="text-[var(--text-muted)]">Session mode</span>
                       <span>{draft.distractionFree ? "Focused" : "Standard"}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#91a7bf]">Auto-start next</span>
+                      <span className="text-[var(--text-muted)]">Auto-start next</span>
                       <span>{draft.autoStartNextSession ? "On" : "Off"}</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-[#6a94c538] bg-[#08192bef] p-3">
-                    <p className="text-xs tracking-[0.16em] text-[#8ca4c0]">SCENE</p>
+                  <div className="mt-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-3">
+                    <p className="text-xs tracking-[0.16em] text-[var(--text-dim)]">SCENE</p>
                     <p className="mt-2 text-lg font-semibold">
                       {scenes.find((scene) => scene.id === draft.sceneId)?.title ?? "No scene selected"}
                     </p>
-                    <p className="mt-1 text-sm text-[#91a7bf]">
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">
                       Cycle scenes can override this base scene.
                     </p>
                   </div>
@@ -699,7 +703,7 @@ export function TimerPresetsPage({
               </aside>
             </div>
 
-            <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[#6a94c526] bg-[#08192bf2] px-4 py-4 backdrop-blur-sm">
+            <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4 backdrop-blur-sm">
               <button
                 type="button"
                 className={buttonClass}
@@ -710,7 +714,7 @@ export function TimerPresetsPage({
               >
                 <ChevronLeft size={16} /> Cancel
               </button>
-              <button type="button" className={`${buttonClass} border-[#5f9beb] bg-[#2f89ff] text-white`} onClick={saveDraft}>
+              <button type="button" className={`${buttonClass} border-[var(--accent-border)] bg-[var(--accent)] text-white`} onClick={saveDraft}>
                 <Save size={16} /> Save Preset
               </button>
             </div>
