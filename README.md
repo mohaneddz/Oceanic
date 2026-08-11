@@ -6,6 +6,8 @@
 Oceanic is a modern ambient sound and scene player built as a desktop app with **Tauri + React + TypeScript**.
 It helps you focus, relax, and sleep with layered sound mixing, curated visual scenes, timers, fade-out controls, and tray-first playback controls.
 
+**Status:** Actively working — mixer, scenes, sleep timer, tray integration, autostart, and theming are all functional. Working tree is clean and in sync with `main`.
+
 ---
 
 ## Tech Used
